@@ -1,0 +1,100 @@
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-[#0a0a0a] text-white">
+      <header className="flex items-center justify-between px-8 py-6">
+        <div className="text-2xl font-light tracking-widest text-amber-300">
+          mel de lua
+        </div>
+        <nav className="flex gap-8 text-sm text-zinc-400">
+          <a href="#como-funciona" className="hover:text-white transition">Como funciona</a>
+          <a href="#agencias" className="hover:text-white transition">Para agencias</a>
+        </nav>
+      </header>
+
+      <section className="flex flex-col items-center justify-center text-center px-6 py-32">
+        <p className="text-amber-300 text-sm tracking-widest uppercase mb-6">
+          A lua de mel que voces merecem
+        </p>
+        <h1 className="text-5xl md:text-7xl font-light leading-tight max-w-4xl mb-8">
+          Sua lua de mel nao deveria ser planejada{" "}
+          <span className="italic text-amber-300">por voces</span>
+        </h1>
+        <p className="text-zinc-400 text-xl max-w-2xl mb-12 leading-relaxed">
+          Voces respondem algumas perguntas sobre a historia de voces.
+          A IA cria o perfil do casal. As melhores agencias do Brasil
+          competem para criar a viagem dos sonhos de voces.
+        </p>
+        
+          href="/comecar"
+          className="bg-amber-300 text-black px-10 py-4 text-lg font-medium hover:bg-amber-200 transition rounded-full"
+        >
+          Comecar nossa historia
+        </a>
+        <p className="text-zinc-600 text-sm mt-6">
+          Gratuito para casais · Sem compromisso
+        </p>
+      </section>
+
+      <section id="como-funciona" className="px-8 py-24 max-w-5xl mx-auto">
+        <h2 className="text-3xl font-light text-center mb-16 text-zinc-300">
+          Como funciona
+        </h2>
+        <div className="grid md:grid-cols-3 gap-12">
+          <div className="text-center">
+            <div className="text-5xl mb-6">💬</div>
+            <h3 className="text-xl mb-3 text-amber-300">Voces contam sua historia</h3>
+            <p className="text-zinc-500 leading-relaxed">
+              Nossa IA conduz uma conversa intima sobre o casal.
+              Nao e um formulario — e uma experiencia.
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="text-5xl mb-6">🎯</div>
+            <h3 className="text-xl mb-3 text-amber-300">As agencias competem por voces</h3>
+            <p className="text-zinc-500 leading-relaxed">
+              Agencias curadas recebem o perfil do casal e criam
+              propostas unicas. Voces escolhem a melhor.
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="text-5xl mb-6">✨</div>
+            <h3 className="text-xl mb-3 text-amber-300">O destino e uma surpresa</h3>
+            <p className="text-zinc-500 leading-relaxed">
+              Voces so descobrem o destino quando escolhem a proposta.
+              O reveal e feito para ser filmado.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-zinc-900 px-8 py-24">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="text-5xl mb-6">💍</div>
+          <h2 className="text-3xl font-light mb-6 text-zinc-300">
+            Os padrinhos guardam o segredo
+          </h2>
+          <p className="text-zinc-500 text-lg leading-relaxed">
+            Voces escolhem pessoas de confianca — padrinhos, amigos, familia.
+            Eles veem o destino antes de voces e aprovam a proposta.
+          </p>
+        </div>
+      </section>
+
+      <section className="flex flex-col items-center justify-center text-center px-6 py-32">
+        <h2 className="text-4xl font-light mb-8 max-w-2xl leading-tight">
+          Prontos para a lua de mel dos sonhos?
+        </h2>
+        
+          href="/comecar"
+          className="bg-amber-300 text-black px-10 py-4 text-lg font-medium hover:bg-amber-200 transition rounded-full"
+        >
+          Comecar nossa historia
+        </a>
+      </section>
+
+      <footer className="border-t border-zinc-800 px-8 py-8 text-center text-zinc-600 text-sm">
+        2025 Mel de Lua · Feito com amor para casais apaixonados
+      </footer>
+    </main>
+  )
+}
