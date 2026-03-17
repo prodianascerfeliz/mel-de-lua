@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
             await supabase.from('briefings').insert({
               casal_id: casal.id,
               respostas: briefingData,
-              status: 'aguardando_agencias',
+              status: 'aguardando_revisao' // Admin precisa revisar antes de liberar para agências,
             })
           }
         }

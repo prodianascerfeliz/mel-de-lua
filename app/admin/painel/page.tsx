@@ -14,6 +14,7 @@ const ADMIN_EMAILS = ['prodianascerfeliz@gmail.com']
 type Aba = 'overview' | 'casais' | 'agencias' | 'propostas' | 'comissoes' | 'cadastrar'
 
 type Casal = { id: string; nome_parceiro_1: string; nome_parceiro_2: string; email: string; status: string; criado_em: string }
+type Briefing = { id: string; casal_id: string; status: string; respostas: Record<string, unknown> }
 type Agencia = { id: string; nome_fantasia: string; responsavel: string; email: string; status: string; nota_media: number; total_viagens_fechadas: number; criado_em: string }
 type Proposta = { id: string; destino: string; valor_total: number; status: string; criado_em: string; agencia: { nome_fantasia: string }; briefing: { casal: { nome_parceiro_1: string; nome_parceiro_2: string } } }
 type Comissao = { id: string; valor_viagem: number; percentual: number; valor_comissao: number; status: string; criado_em: string; proposta: { destino: string; agencia: { nome_fantasia: string } } }
@@ -24,6 +25,7 @@ export default function PainelAdmin() {
   const [agencias, setAgencias] = useState<Agencia[]>([])
   const [propostas, setPropostas] = useState<Proposta[]>([])
   const [comissoes, setComissoes] = useState<Comissao[]>([])
+  const [briefings, setBriefings] = useState<Briefing[]>([])
   const [loading, setLoading] = useState(true)
   const [novaAgencia, setNovaAgencia] = useState({ nome_fantasia: '', responsavel: '', email: '', telefone: '' })
   const [salvandoAgencia, setSalvandoAgencia] = useState(false)
@@ -37,13 +39,18 @@ export default function PainelAdmin() {
     if (!user || !ADMIN_EMAILS.includes(user.email || '')) {
       router.push('/admin/login'); return
     }
-    await Promise.all([carregarCasais(), carregarAgencias(), carregarPropostas(), carregarComissoes()])
+    await Promise.all([carregarCasais(), carregarAgencias(), carregarPropostas(), carregarComissoes(), carregarBriefings()])
     setLoading(false)
   }
 
   const carregarCasais = async () => {
     const { data } = await supabase.from('casais').select('*').order('criado_em', { ascending: false })
     if (data) setCasais(data)
+  }
+
+  const carregarBriefings = async () => {
+    const { data } = await supabase.from('briefings').select('id, casal_id, status, respostas').order('criado_em', { ascending: false })
+    if (data) setBriefings(data)
   }
 
   const carregarAgencias = async () => {
@@ -86,6 +93,11 @@ export default function PainelAdmin() {
       carregarAgencias()
     }
     setSalvandoAgencia(false)
+  }
+
+  const aprovarBriefing = async (briefingId: string) => {
+    await supabase.from('briefings').update({ status: 'aguardando_agencias' }).eq('id', briefingId)
+    setBriefings(bs => bs.map(b => b.id === briefingId ? { ...b, status: 'aguardando_agencias' } : b))
   }
 
   const atualizarStatusComissao = async (id: string, status: string) => {
@@ -215,9 +227,20 @@ export default function PainelAdmin() {
                       <div style={{fontSize:'15px',color:'#FFFFFF',fontWeight:400,marginBottom:'4px'}}>{c.nome_parceiro_1} & {c.nome_parceiro_2}</div>
                       <div style={{fontSize:'12px',color:'rgba(255,255,255,0.35)',fontFamily:'sans-serif'}}>{c.email} · {new Date(c.criado_em).toLocaleDateString('pt-BR')}</div>
                     </div>
-                    <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
                       <span style={{fontSize:'11px',color:statusCor[c.status]||'#FFFFFF',fontFamily:'sans-serif',letterSpacing:'0.1em'}}>● {c.status?.replace(/_/g,' ')}</span>
-                      <a href={`/casal/painel`} target="_blank" className="btn-sm" style={{fontSize:'11px',color:'rgba(46,134,193,0.7)',fontFamily:'sans-serif',textDecoration:'none',border:'1px solid rgba(46,134,193,0.2)',padding:'4px 12px',cursor:'pointer',transition:'opacity 0.2s'}}>
+                      {briefings.find(b => b.casal_id === c.id)?.status === 'aguardando_revisao' && (
+                        <button
+                          onClick={() => aprovarBriefing(briefings.find(b => b.casal_id === c.id)!.id)}
+                          className="btn-sm"
+                          style={{fontSize:'11px',fontFamily:'sans-serif',border:'1px solid rgba(61,214,140,0.3)',color:'#3DD68C',backgroundColor:'rgba(61,214,140,0.06)',padding:'5px 14px',cursor:'pointer',letterSpacing:'0.08em'}}>
+                          ✓ Liberar para agências
+                        </button>
+                      )}
+                      {briefings.find(b => b.casal_id === c.id)?.status === 'aguardando_agencias' && (
+                        <span style={{fontSize:'11px',color:'#3DD68C',fontFamily:'sans-serif'}}>✓ Liberado</span>
+                      )}
+                      <a href="/casal/painel" target="_blank" className="btn-sm" style={{fontSize:'11px',color:'rgba(46,134,193,0.7)',fontFamily:'sans-serif',textDecoration:'none',border:'1px solid rgba(46,134,193,0.2)',padding:'4px 12px',cursor:'pointer',transition:'opacity 0.2s'}}>
                         Ver painel
                       </a>
                     </div>
