@@ -30,6 +30,7 @@ export default function PainelAdmin() {
   const [novaAgencia, setNovaAgencia] = useState({ nome_fantasia: '', responsavel: '', email: '', telefone: '' })
   const [salvandoAgencia, setSalvandoAgencia] = useState(false)
   const [msgAgencia, setMsgAgencia] = useState('')
+  const [briefingModal, setBriefingModal] = useState<Briefing | null>(null)
   const router = useRouter()
 
   useEffect(() => { verificarAdmin() }, [])
@@ -240,6 +241,14 @@ export default function PainelAdmin() {
                       {briefings.find(b => b.casal_id === c.id)?.status === 'aguardando_agencias' && (
                         <span style={{fontSize:'11px',color:'#3DD68C',fontFamily:'sans-serif'}}>✓ Liberado</span>
                       )}
+                      {briefings.find(b => b.casal_id === c.id) && (
+                        <button
+                          onClick={() => setBriefingModal(briefings.find(b => b.casal_id === c.id)!)}
+                          className="btn-sm"
+                          style={{fontSize:'11px',fontFamily:'sans-serif',border:'1px solid rgba(240,165,0,0.3)',color:'#F0A500',backgroundColor:'rgba(240,165,0,0.06)',padding:'5px 14px',cursor:'pointer',letterSpacing:'0.08em'}}>
+                          📋 Ver briefing
+                        </button>
+                      )}
                       <a href="/casal/painel" target="_blank" className="btn-sm" style={{fontSize:'11px',color:'rgba(46,134,193,0.7)',fontFamily:'sans-serif',textDecoration:'none',border:'1px solid rgba(46,134,193,0.2)',padding:'4px 12px',cursor:'pointer',transition:'opacity 0.2s'}}>
                         Ver painel
                       </a>
@@ -388,6 +397,57 @@ export default function PainelAdmin() {
 
         </div>
       </div>
+    {/* MODAL BRIEFING */}
+      {briefingModal && (
+        <div style={{position:'fixed',inset:0,backgroundColor:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'24px'}}
+          onClick={() => setBriefingModal(null)}>
+          <div onClick={e => e.stopPropagation()} style={{backgroundColor:'#0A1628',border:'1px solid rgba(255,255,255,0.1)',padding:'36px',maxWidth:'600px',width:'100%',maxHeight:'80vh',overflowY:'auto',position:'relative'}}>
+            <button onClick={() => setBriefingModal(null)} style={{position:'absolute',top:'16px',right:'16px',background:'none',border:'none',color:'rgba(255,255,255,0.4)',fontSize:'20px',cursor:'pointer'}}>✕</button>
+            <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'20px'}}>
+              <div style={{width:'20px',height:'1px',backgroundColor:'#F0A500'}}/>
+              <span style={{fontSize:'10px',letterSpacing:'0.4em',color:'#F0A500',textTransform:'uppercase',fontFamily:'sans-serif'}}>Briefing do casal</span>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+              {Object.entries(briefingModal.respostas || {}).map(([key, value]) => {
+                if (!value || key === 'conversa_parcial') return null
+                const labels: Record<string, string> = {
+                  nome_parceiro_1: 'Parceiro 1', nome_parceiro_2: 'Parceiro 2',
+                  email: 'E-mail', historia: 'História', personalidade: 'Personalidade',
+                  destinos_visitados: 'Destinos visitados', aceita_repetir_destino: 'Aceita repetir destino',
+                  preferencia_tipo: 'Preferência de destino', ritmo_viagem: 'Ritmo de viagem',
+                  atividades_juntos: 'Atividades juntos', gastronomia: 'Gastronomia',
+                  restricao_alimentar: 'Restrição alimentar', clima_preferido: 'Clima preferido',
+                  orcamento: 'Orçamento', data_casamento: 'Data do casamento',
+                  duracao_dias: 'Duração (dias)', tipo_festa: 'Tipo de festa',
+                  local_casamento: 'Local do casamento',
+                }
+                return (
+                  <div key={key} style={{borderBottom:'1px solid rgba(255,255,255,0.05)',paddingBottom:'12px'}}>
+                    <div style={{fontSize:'10px',letterSpacing:'0.2em',color:'rgba(255,255,255,0.3)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'4px'}}>
+                      {labels[key] || key}
+                    </div>
+                    <div style={{fontSize:'14px',color:'rgba(255,255,255,0.8)',fontFamily:'sans-serif',lineHeight:1.7}}>
+                      {String(value)}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{display:'flex',gap:'12px',marginTop:'24px',paddingTop:'20px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+              {briefingModal.status === 'aguardando_revisao' && (
+                <button onClick={() => { aprovarBriefing(briefingModal.id); setBriefingModal(null) }}
+                  style={{backgroundColor:'rgba(61,214,140,0.1)',border:'1px solid rgba(61,214,140,0.3)',color:'#3DD68C',padding:'10px 24px',fontSize:'12px',letterSpacing:'0.15em',fontFamily:'sans-serif',cursor:'pointer',textTransform:'uppercase'}}>
+                  ✓ Liberar para agências
+                </button>
+              )}
+              <button onClick={() => setBriefingModal(null)}
+                style={{background:'none',border:'1px solid rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.4)',padding:'10px 24px',fontSize:'12px',letterSpacing:'0.15em',fontFamily:'sans-serif',cursor:'pointer',textTransform:'uppercase'}}>
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
