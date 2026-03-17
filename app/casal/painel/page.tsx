@@ -178,8 +178,8 @@ export default function PainelCasal() {
                     backgroundColor: p.aprovado===true ? 'rgba(61,214,140,0.2)' : p.aprovado===false ? 'rgba(255,107,107,0.2)' : 'rgba(255,255,255,0.1)',
                     border: `1px solid ${p.aprovado===true ? '#3DD68C' : p.aprovado===false ? '#ff6b6b' : 'rgba(255,255,255,0.2)'}`,
                     display:'flex',alignItems:'center',justifyContent:'center',
-                    fontSize:'13px',title:p.nome,
-                  }}>
+                    fontSize:'13px',
+                  }} title={p.nome}>
                     {p.aprovado===true ? '✓' : p.aprovado===false ? '✗' : '?'}
                   </div>
                 ))}
