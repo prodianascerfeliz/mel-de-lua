@@ -31,6 +31,9 @@ export default function PainelAdmin() {
   const [salvandoAgencia, setSalvandoAgencia] = useState(false)
   const [msgAgencia, setMsgAgencia] = useState('')
   const [briefingModal, setBriefingModal] = useState<Briefing | null>(null)
+  const [recomendacoes, setRecomendacoes] = useState<Record<string, unknown> | null>(null)
+  const [gerandoRec, setGerandoRec] = useState(false)
+  const [abaModal, setAbaModal] = useState<'bruto' | 'recomendacoes'>('bruto')
   const router = useRouter()
 
   useEffect(() => { verificarAdmin() }, [])
@@ -94,6 +97,25 @@ export default function PainelAdmin() {
       carregarAgencias()
     }
     setSalvandoAgencia(false)
+  }
+
+  const gerarRecomendacoes = async (briefing: Briefing) => {
+    setGerandoRec(true)
+    try {
+      const res = await fetch('/api/recomendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ briefingId: briefing.id, respostas: briefing.respostas }),
+      })
+      const data = await res.json()
+      if (data.recomendacoes) {
+        setRecomendacoes(data.recomendacoes)
+        setAbaModal('recomendacoes')
+        // Atualiza o briefing local com resumo_ia
+        setBriefings(bs => bs.map(b => b.id === briefing.id ? { ...b, resumo_ia: JSON.stringify(data.recomendacoes) } : b))
+      }
+    } catch (e) { console.error(e) }
+    setGerandoRec(false)
   }
 
   const aprovarBriefing = async (briefingId: string) => {
@@ -243,7 +265,15 @@ export default function PainelAdmin() {
                       )}
                       {briefings.find(b => b.casal_id === c.id) && (
                         <button
-                          onClick={() => setBriefingModal(briefings.find(b => b.casal_id === c.id)!)}
+                          onClick={() => {
+                          setBriefingModal(briefings.find(b => b.casal_id === c.id)!)
+                          setAbaModal('bruto')
+                          // Carrega recomendações salvas se existirem
+                          const bf = briefings.find(b => b.casal_id === c.id)
+                          if (bf?.resumo_ia) {
+                            try { setRecomendacoes(JSON.parse(bf.resumo_ia as string)) } catch { setRecomendacoes(null) }
+                          } else { setRecomendacoes(null) }
+                        }}
                           className="btn-sm"
                           style={{fontSize:'11px',fontFamily:'sans-serif',border:'1px solid rgba(240,165,0,0.3)',color:'#F0A500',backgroundColor:'rgba(240,165,0,0.06)',padding:'5px 14px',cursor:'pointer',letterSpacing:'0.08em'}}>
                           📋 Ver briefing
@@ -399,44 +429,141 @@ export default function PainelAdmin() {
       </div>
     {/* MODAL BRIEFING */}
       {briefingModal && (
-        <div style={{position:'fixed',inset:0,backgroundColor:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'24px'}}
+        <div style={{position:'fixed',inset:0,backgroundColor:'rgba(0,0,0,0.88)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'24px'}}
           onClick={() => setBriefingModal(null)}>
-          <div onClick={e => e.stopPropagation()} style={{backgroundColor:'#0A1628',border:'1px solid rgba(255,255,255,0.1)',padding:'36px',maxWidth:'600px',width:'100%',maxHeight:'80vh',overflowY:'auto',position:'relative'}}>
-            <button onClick={() => setBriefingModal(null)} style={{position:'absolute',top:'16px',right:'16px',background:'none',border:'none',color:'rgba(255,255,255,0.4)',fontSize:'20px',cursor:'pointer'}}>✕</button>
-            <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'20px'}}>
-              <div style={{width:'20px',height:'1px',backgroundColor:'#F0A500'}}/>
-              <span style={{fontSize:'10px',letterSpacing:'0.4em',color:'#F0A500',textTransform:'uppercase',fontFamily:'sans-serif'}}>Briefing do casal</span>
+          <div onClick={e => e.stopPropagation()} style={{backgroundColor:'#0A1628',border:'1px solid rgba(255,255,255,0.1)',maxWidth:'680px',width:'100%',maxHeight:'85vh',display:'flex',flexDirection:'column',position:'relative'}}>
+
+            {/* Header do modal */}
+            <div style={{padding:'24px 28px 0',borderBottom:'1px solid rgba(255,255,255,0.06)',flexShrink:0}}>
+              <button onClick={() => setBriefingModal(null)} style={{position:'absolute',top:'16px',right:'16px',background:'none',border:'none',color:'rgba(255,255,255,0.4)',fontSize:'20px',cursor:'pointer'}}>✕</button>
+              <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px'}}>
+                <div style={{width:'20px',height:'1px',backgroundColor:'#F0A500'}}/>
+                <span style={{fontSize:'10px',letterSpacing:'0.4em',color:'#F0A500',textTransform:'uppercase',fontFamily:'sans-serif'}}>Briefing do casal</span>
+              </div>
+              {/* Abas */}
+              <div style={{display:'flex',gap:'0'}}>
+                {(['bruto', 'recomendacoes'] as const).map(tab => (
+                  <button key={tab} onClick={() => setAbaModal(tab)}
+                    style={{padding:'10px 20px',background:'none',border:'none',cursor:'pointer',fontSize:'12px',fontFamily:'sans-serif',letterSpacing:'0.1em',
+                      color: abaModal === tab ? '#FFFFFF' : 'rgba(255,255,255,0.35)',
+                      borderBottom: abaModal === tab ? '2px solid #2E86C1' : '2px solid transparent',
+                      transition:'all 0.15s'}}>
+                    {tab === 'bruto' ? '📋 Respostas brutas' : `✨ Recomendações IA${recomendacoes ? ' ✓' : ''}`}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
-              {Object.entries(briefingModal.respostas || {}).map(([key, value]) => {
-                if (!value || key === 'conversa_parcial') return null
-                const labels: Record<string, string> = {
-                  nome_parceiro_1: 'Parceiro 1', nome_parceiro_2: 'Parceiro 2',
-                  email: 'E-mail', historia: 'História', personalidade: 'Personalidade',
-                  destinos_visitados: 'Destinos visitados', aceita_repetir_destino: 'Aceita repetir destino',
-                  preferencia_tipo: 'Preferência de destino', ritmo_viagem: 'Ritmo de viagem',
-                  atividades_juntos: 'Atividades juntos', gastronomia: 'Gastronomia',
-                  restricao_alimentar: 'Restrição alimentar', clima_preferido: 'Clima preferido',
-                  orcamento: 'Orçamento', data_casamento: 'Data do casamento',
-                  duracao_dias: 'Duração (dias)', tipo_festa: 'Tipo de festa',
-                  local_casamento: 'Local do casamento',
-                }
-                return (
-                  <div key={key} style={{borderBottom:'1px solid rgba(255,255,255,0.05)',paddingBottom:'12px'}}>
-                    <div style={{fontSize:'10px',letterSpacing:'0.2em',color:'rgba(255,255,255,0.3)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'4px'}}>
-                      {labels[key] || key}
+
+            {/* Conteúdo scrollável */}
+            <div style={{overflowY:'auto',flex:1,padding:'24px 28px'}}>
+
+              {/* ABA BRUTA */}
+              {abaModal === 'bruto' && (
+                <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+                  {Object.entries(briefingModal.respostas || {}).map(([key, value]) => {
+                    if (!value || key === 'conversa_parcial') return null
+                    const labels: Record<string, string> = {
+                      nome_parceiro_1: 'Parceiro 1', nome_parceiro_2: 'Parceiro 2',
+                      email: 'E-mail', historia: 'História', personalidade: 'Personalidade',
+                      destinos_visitados: 'Destinos visitados', aceita_repetir_destino: 'Aceita repetir destino',
+                      preferencia_tipo: 'Preferência de destino', ritmo_viagem: 'Ritmo de viagem',
+                      atividades_juntos: 'Atividades juntos', gastronomia: 'Gastronomia',
+                      restricao_alimentar: 'Restrição alimentar', clima_preferido: 'Clima preferido',
+                      orcamento: 'Orçamento', data_casamento: 'Data do casamento',
+                      duracao_dias: 'Duração (dias)', tipo_festa: 'Tipo de festa',
+                      local_casamento: 'Local do casamento',
+                    }
+                    return (
+                      <div key={key} style={{borderBottom:'1px solid rgba(255,255,255,0.05)',paddingBottom:'10px'}}>
+                        <div style={{fontSize:'10px',letterSpacing:'0.2em',color:'rgba(255,255,255,0.3)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'4px'}}>{labels[key] || key}</div>
+                        <div style={{fontSize:'14px',color:'rgba(255,255,255,0.8)',fontFamily:'sans-serif',lineHeight:1.7}}>{String(value)}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* ABA RECOMENDAÇÕES */}
+              {abaModal === 'recomendacoes' && (
+                <div>
+                  {!recomendacoes ? (
+                    <div style={{textAlign:'center',padding:'48px 20px'}}>
+                      <div style={{fontSize:'32px',marginBottom:'16px'}}>✨</div>
+                      <p style={{color:'rgba(255,255,255,0.5)',fontFamily:'sans-serif',fontSize:'14px',lineHeight:1.8,marginBottom:'24px'}}>
+                        O motor de IA vai analisar o perfil do casal e gerar 2 destinos surpreendentes com justificativa completa.
+                      </p>
+                      <button onClick={() => gerarRecomendacoes(briefingModal)} disabled={gerandoRec}
+                        style={{backgroundColor:'#2E86C1',color:'#FFFFFF',padding:'13px 36px',fontSize:'12px',letterSpacing:'0.2em',border:'none',fontFamily:'sans-serif',cursor:gerandoRec?'wait':'pointer',opacity:gerandoRec?0.7:1}}>
+                        {gerandoRec ? '⏳ Gerando recomendações...' : '✨ Gerar recomendações'}
+                      </button>
+                      {gerandoRec && <p style={{fontSize:'12px',color:'rgba(255,255,255,0.3)',fontFamily:'sans-serif',marginTop:'12px'}}>Pode levar alguns segundos...</p>}
                     </div>
-                    <div style={{fontSize:'14px',color:'rgba(255,255,255,0.8)',fontFamily:'sans-serif',lineHeight:1.7}}>
-                      {String(value)}
+                  ) : (
+                    <div style={{display:'flex',flexDirection:'column',gap:'24px'}}>
+                      {/* Resumo do casal */}
+                      {(recomendacoes as Record<string,unknown>).resumo_casal && (
+                        <div style={{backgroundColor:'rgba(46,134,193,0.08)',border:'1px solid rgba(46,134,193,0.2)',padding:'18px'}}>
+                          <div style={{fontSize:'10px',letterSpacing:'0.3em',color:'#2E86C1',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'8px'}}>Perfil do casal (para as agências)</div>
+                          <p style={{fontSize:'14px',color:'rgba(255,255,255,0.75)',fontFamily:'sans-serif',lineHeight:1.85,margin:0}}>{String((recomendacoes as Record<string,unknown>).resumo_casal)}</p>
+                        </div>
+                      )}
+
+                      {/* Destino 1 */}
+                      {([1,2] as const).map(n => {
+                        const rec = (recomendacoes as Record<string,unknown>)[`recomendacao_${n}`] as Record<string,unknown>
+                        if (!rec) return null
+                        return (
+                          <div key={n} style={{border:'1px solid rgba(240,165,0,0.2)',padding:'20px',position:'relative'}}>
+                            <div style={{position:'absolute',top:'-10px',left:'16px',backgroundColor:'#0A1628',padding:'2px 10px'}}>
+                              <span style={{fontSize:'10px',letterSpacing:'0.3em',color:'#F0A500',textTransform:'uppercase',fontFamily:'sans-serif'}}>Destino {n}</span>
+                            </div>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'12px'}}>
+                              <div>
+                                <h3 style={{fontSize:'22px',fontWeight:400,color:'#FFFFFF',margin:'0 0 4px',letterSpacing:'-0.01em'}}>{String(rec.destino)}</h3>
+                                <p style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',margin:0}}>{String(rec.pais)}</p>
+                              </div>
+                              <span style={{fontSize:'11px',color:'rgba(240,165,0,0.8)',fontFamily:'sans-serif',backgroundColor:'rgba(240,165,0,0.08)',padding:'4px 10px',border:'1px solid rgba(240,165,0,0.2)'}}>{String(rec.nivel_exclusividade)}</span>
+                            </div>
+                            <p style={{fontSize:'15px',fontStyle:'italic',color:'rgba(255,255,255,0.6)',marginBottom:'12px',lineHeight:1.6}}>"{String(rec.titulo)}"</p>
+                            <p style={{fontSize:'13px',color:'rgba(255,255,255,0.65)',fontFamily:'sans-serif',lineHeight:1.8,marginBottom:'14px'}}>{String(rec.justificativa)}</p>
+                            <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'10px'}}>
+                              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',backgroundColor:'rgba(255,255,255,0.05)',padding:'3px 10px'}}>🗓 {String(rec.melhor_epoca)}</span>
+                              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',backgroundColor:'rgba(255,255,255,0.05)',padding:'3px 10px'}}>✈️ {String(rec.perfil_viagem)}</span>
+                            </div>
+                            {Array.isArray(rec.experiencias) && (
+                              <div>
+                                <div style={{fontSize:'10px',letterSpacing:'0.2em',color:'rgba(255,255,255,0.25)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'6px'}}>Experiências</div>
+                                {(rec.experiencias as string[]).map((exp, i) => (
+                                  <div key={i} style={{display:'flex',gap:'8px',marginBottom:'4px'}}>
+                                    <span style={{color:'#F0A500',fontSize:'12px',flexShrink:0}}>→</span>
+                                    <span style={{fontSize:'13px',color:'rgba(255,255,255,0.6)',fontFamily:'sans-serif',lineHeight:1.6}}>{exp}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+
+                      {/* Botão regenerar */}
+                      <button onClick={() => gerarRecomendacoes(briefingModal)} disabled={gerandoRec}
+                        style={{background:'none',border:'1px solid rgba(255,255,255,0.1)',color:'rgba(255,255,255,0.35)',padding:'9px 20px',fontSize:'11px',letterSpacing:'0.15em',fontFamily:'sans-serif',cursor:'pointer',alignSelf:'flex-start'}}>
+                        {gerandoRec ? '⏳ Gerando...' : '↺ Gerar novamente'}
+                      </button>
                     </div>
-                  </div>
-                )
-              })}
+                  )}
+                </div>
+              )}
             </div>
-            <div style={{display:'flex',gap:'12px',marginTop:'24px',paddingTop:'20px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+
+            {/* Footer com ações */}
+            <div style={{padding:'16px 28px',borderTop:'1px solid rgba(255,255,255,0.06)',display:'flex',gap:'12px',flexShrink:0,flexWrap:'wrap'}}>
               {briefingModal.status === 'aguardando_revisao' && (
-                <button onClick={() => { aprovarBriefing(briefingModal.id); setBriefingModal(null) }}
-                  style={{backgroundColor:'rgba(61,214,140,0.1)',border:'1px solid rgba(61,214,140,0.3)',color:'#3DD68C',padding:'10px 24px',fontSize:'12px',letterSpacing:'0.15em',fontFamily:'sans-serif',cursor:'pointer',textTransform:'uppercase'}}>
+                <button
+                  onClick={() => { aprovarBriefing(briefingModal.id); setBriefingModal(null) }}
+                  disabled={!recomendacoes}
+                  title={!recomendacoes ? 'Gere as recomendações antes de liberar' : ''}
+                  style={{backgroundColor: recomendacoes ? 'rgba(61,214,140,0.1)' : 'rgba(255,255,255,0.03)',border:`1px solid ${recomendacoes ? 'rgba(61,214,140,0.3)' : 'rgba(255,255,255,0.1)'}`,color: recomendacoes ? '#3DD68C' : 'rgba(255,255,255,0.2)',padding:'10px 24px',fontSize:'12px',letterSpacing:'0.15em',fontFamily:'sans-serif',cursor: recomendacoes ? 'pointer' : 'not-allowed',textTransform:'uppercase'}}>
                   ✓ Liberar para agências
                 </button>
               )}
