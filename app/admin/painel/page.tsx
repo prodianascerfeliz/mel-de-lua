@@ -14,7 +14,7 @@ const ADMIN_EMAILS = ['prodianascerfeliz@gmail.com']
 type Aba = 'overview' | 'casais' | 'agencias' | 'propostas' | 'comissoes' | 'cadastrar'
 
 type Casal = { id: string; nome_parceiro_1: string; nome_parceiro_2: string; email: string; status: string; criado_em: string }
-type Briefing = { id: string; casal_id: string; status: string; respostas: Record<string, unknown> }
+type Briefing = { id: string; casal_id: string; status: string; respostas: Record<string, unknown>; resumo_ia?: string }
 type Agencia = { id: string; nome_fantasia: string; responsavel: string; email: string; status: string; nota_media: number; total_viagens_fechadas: number; criado_em: string }
 type Proposta = { id: string; destino: string; valor_total: number; status: string; criado_em: string; agencia: { nome_fantasia: string }; briefing: { casal: { nome_parceiro_1: string; nome_parceiro_2: string } } }
 type Comissao = { id: string; valor_viagem: number; percentual: number; valor_comissao: number; status: string; criado_em: string; proposta: { destino: string; agencia: { nome_fantasia: string } } }
