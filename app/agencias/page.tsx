@@ -1,12 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 export default function Agencias() {
   const [faqAberto, setFaqAberto] = useState<number | null>(null)
@@ -20,24 +14,17 @@ export default function Agencias() {
     setEnviando(true)
     setErro('')
     try {
-      const { error } = await supabase.from('agencias').insert({
-        nome_fantasia: form.agencia,
-        responsavel: form.nome,
-        email: form.email,
-        telefone: form.telefone,
-        status: 'pendente',
-        nota_media: 0,
-        total_viagens_fechadas: 0,
-      })
-      if (error) throw error
-
-      // Notificar admin
+      // Notificar admin por e-mail
       await fetch('/api/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tipo: 'admin_novo_briefing',
-          dados: { nome1: `Nova agência: ${form.agencia}`, nome2: form.cidade, email: form.email }
+          dados: {
+            nome1: `Nova agência interessada: ${form.agencia}`,
+            nome2: `${form.nome} · ${form.cidade} · Tel: ${form.telefone} · CNPJ: ${form.cnpj}`,
+            email: form.email
+          }
         }),
       })
       setEnviado(true)
@@ -48,12 +35,12 @@ export default function Agencias() {
   }
 
   const faqs = [
-    { q: 'Quanto custa para minha agência participar?', a: 'Nada. O Mel de Lua é completamente gratuito para as agências. Você só paga uma comissão quando uma viagem é efetivamente fechada — 8% até R$20k, 10% até R$50k e 12% acima disso.' },
+    { q: 'Quanto custa para minha agência participar?', a: 'O credenciamento é completamente gratuito. O modelo comercial é baseado em resultado — os detalhes são apresentados durante o processo de credenciamento da sua agência.' },
     { q: 'Como recebo os briefings dos casais?', a: 'Após aprovação, você recebe acesso ao painel da agência onde os briefings ficam disponíveis. Cada briefing inclui o perfil do casal e as recomendações de destino geradas pela nossa IA. Você também é notificado por e-mail a cada novo briefing.' },
     { q: 'Quantas agências competem por cada casal?', a: 'Trabalhamos com no máximo 3 agências por briefing — garantindo que cada proposta tenha visibilidade real e que o casal não seja sobrecarregado de opções.' },
     { q: 'O casal sabe o destino antes de escolher?', a: 'Não. Esse é o nosso diferencial. O casal vê o valor, a duração e o estilo da viagem — mas o destino só é revelado após a escolha. Isso cria um momento de reveal único e viral.' },
-    { q: 'Como funciona o pagamento da comissão?', a: 'Após a viagem ser confirmada e o casal realizar o pagamento à agência, a comissão é cobrada dentro de 30 dias. Trabalhamos com Pix e transferência bancária.' },
     { q: 'Que tipo de agência vocês buscam?', a: 'Buscamos agências especializadas em viagens internacionais e/ou experiências premium, com capacidade de criar roteiros personalizados e surpresa. Não trabalhamos com pacotes prontos ou viagens domésticas simples.' },
+    { q: 'Quanto tempo leva para ser credenciada?', a: 'Após o envio do formulário, nossa equipe entra em contato em até 48h. O processo de credenciamento é simples e rápido — na maioria dos casos a agência está operando no painel em menos de uma semana.' },
   ]
 
   return (
