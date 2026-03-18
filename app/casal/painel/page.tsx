@@ -274,14 +274,16 @@ export default function PainelCasal() {
         )}
 
         {/* PROPOSTAS */}
-        {aba === 'propostas' && propostas.length === 0 ? (
+        {aba === 'propostas' && (
+          <>
+          {propostas.length === 0 ? (
           <div style={{textAlign:'center',padding:'80px 20px'}}>
             <div style={{fontSize:'40px',marginBottom:'16px',animation:'pulse 2s ease-in-out infinite'}}>⏳</div>
             <p style={{color:'rgba(255,255,255,0.35)',fontFamily:'sans-serif',fontSize:'16px',lineHeight:1.8}}>
               As agências estão preparando propostas incríveis para vocês.<br/>Em breve chegam aqui!
             </p>
           </div>
-        ) : aba === 'propostas' ? (
+        ) : (
           <>
             <div style={{display:'flex',flexDirection:'column',gap:'20px',marginBottom:'32px'}}>
               {propostas.map((p, i) => (
@@ -388,6 +390,8 @@ export default function PainelCasal() {
                 Após escolher, o destino será revelado para sempre
               </p>
             </div>
+          </>
+        )}
           </>
         )}
       </div>
