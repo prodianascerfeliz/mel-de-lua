@@ -108,7 +108,7 @@ export default function Home() {
           {/* Nav desktop */}
           <nav className="nav-desktop" style={{display: 'flex', gap: '48px', fontSize: '12px', letterSpacing: '0.15em', fontFamily: 'sans-serif'}}>
             <a href="#como-funciona" style={{textDecoration: 'none', color: 'rgba(255,255,255,0.6)'}}>Como funciona</a>
-            <a href="#agencias" style={{textDecoration: 'none', color: 'rgba(255,255,255,0.6)'}}>Para agências</a>
+            <a href="/agencias" style={{textDecoration: 'none', color: 'rgba(255,255,255,0.6)'}}>Para agências</a>
           </nav>
 
           <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
@@ -140,7 +140,7 @@ export default function Home() {
       {/* MENU MOBILE */}
       <div className={`mobile-menu${menuOpen ? ' open' : ''}`}>
         <a href="#como-funciona" onClick={() => setMenuOpen(false)}>Como funciona</a>
-        <a href="#agencias" onClick={() => setMenuOpen(false)}>Para agências</a>
+        <a href="/agencias" onClick={() => setMenuOpen(false)}>Para agências</a>
         <a href="/comecar" style={{
           backgroundColor: '#2E86C1', color: '#FFFFFF !important',
           padding: '14px 24px', textAlign: 'center',
@@ -363,7 +363,7 @@ export default function Home() {
           <div style={{fontSize: '18px', fontWeight: 300, letterSpacing: '0.3em', color: '#0A1628'}}>Mel de Lua</div>
           <div style={{fontSize: '12px', color: '#1B3A6B', letterSpacing: '0.05em', fontFamily: 'sans-serif'}}>2026 Mel de Lua · Todos os direitos reservados</div>
           <div style={{display: 'flex', gap: '28px', fontSize: '12px', color: '#1B3A6B', fontFamily: 'sans-serif'}}>
-            <a href="#" style={{textDecoration: 'none', color: 'inherit'}}>Para agências</a>
+            <a href="/agencias" style={{textDecoration: 'none', color: 'inherit'}}>Para agências</a>
             <button onClick={()=>setContatoModal(true)} style={{background:'none',border:'none',cursor:'pointer',color:'inherit',fontSize:'12px',fontFamily:'sans-serif',padding:0}}>Contato</button>
             <a href="/legal" style={{textDecoration: 'none', color: 'inherit'}}>Privacidade</a>
             <a href="/legal" style={{textDecoration: 'none', color: 'inherit'}}>Termos</a>
