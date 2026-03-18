@@ -362,6 +362,8 @@ export default function Home() {
           <div style={{display: 'flex', gap: '28px', fontSize: '12px', color: '#1B3A6B', fontFamily: 'sans-serif'}}>
             <a href="#" style={{textDecoration: 'none', color: 'inherit'}}>Para agências</a>
             <a href="#" style={{textDecoration: 'none', color: 'inherit'}}>Contato</a>
+            <a href="/legal" style={{textDecoration: 'none', color: 'inherit'}}>Privacidade</a>
+            <a href="/legal" style={{textDecoration: 'none', color: 'inherit'}}>Termos</a>
           </div>
         </div>
       </footer>
