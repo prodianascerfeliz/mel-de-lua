@@ -36,6 +36,11 @@ export default function PainelCasal() {
   const [confirmarModal, setConfirmarModal] = useState(false)
   const [loading, setLoading] = useState(true)
   const [escolhendo, setEscolhendo] = useState(false)
+  const [aba, setAba] = useState<'propostas' | 'padrinhos'>('propostas')
+  const [casalId, setCasalId] = useState<string | null>(null)
+  const [novoPadrinho, setNovoPadrinho] = useState({ nome: '', email: '' })
+  const [adicionando, setAdicionando] = useState(false)
+  const [msgPadrinho, setMsgPadrinho] = useState('')
   const router = useRouter()
 
   useEffect(() => { carregarDados() }, [])
@@ -50,6 +55,7 @@ export default function PainelCasal() {
       .eq('email', user.email).single()
 
     if (!casalData) { setLoading(false); return }
+    setCasalId(casalData.id)
     setCasal({ nome1: casalData.nome_parceiro_1, nome2: casalData.nome_parceiro_2 })
 
     // Busca briefing do casal
@@ -76,6 +82,42 @@ export default function PainelCasal() {
     }
 
     setLoading(false)
+  }
+
+  const handleAdicionarPadrinho = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!casalId || !casal) return
+    setAdicionando(true)
+    setMsgPadrinho('')
+    try {
+      const res = await fetch('/api/padrinhos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          casalId,
+          nome: novoPadrinho.nome,
+          email: novoPadrinho.email,
+          nome1: casal.nome1,
+          nome2: casal.nome2,
+        }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setMsgPadrinho('Convite enviado com sucesso!')
+        setNovoPadrinho({ nome: '', email: '' })
+        // Recarregar padrinhos
+        const { data: pads } = await supabase.from('padrinhos').select('id, nome, aprovado, comentarios').eq('casal_id', casalId)
+        if (pads) setPadrinhos(pads)
+      } else {
+        setMsgPadrinho('Erro ao enviar convite. Tente novamente.')
+      }
+    } catch { setMsgPadrinho('Erro ao enviar convite.') }
+    setAdicionando(false)
+  }
+
+  const handleRemoverPadrinho = async (id: string) => {
+    await fetch(`/api/padrinhos?id=${id}`, { method: 'DELETE' })
+    setPadrinhos(ps => ps.filter(p => p.id !== id))
   }
 
   const padrinhosPendentes = padrinhos.filter(p => p.aprovado === null).length
@@ -159,17 +201,49 @@ export default function PainelCasal() {
           </p>
         </div>
 
+        {/* ABAS */}
+        <div style={{display:'flex',gap:'0',borderBottom:'1px solid rgba(255,255,255,0.06)',marginBottom:'32px'}}>
+          {([
+            {id:'propostas', label:'✈️ Propostas'},
+            {id:'padrinhos', label:'🤫 Padrinhos'},
+          ] as {id: 'propostas'|'padrinhos', label:string}[]).map(item => (
+            <button key={item.id} onClick={()=>setAba(item.id)}
+              style={{padding:'12px 24px',background:'none',border:'none',cursor:'pointer',fontSize:'13px',fontFamily:'sans-serif',letterSpacing:'0.08em',
+                color: aba===item.id ? '#FFFFFF' : 'rgba(255,255,255,0.35)',
+                borderBottom: aba===item.id ? '2px solid #2E86C1' : '2px solid transparent',
+                transition:'all 0.15s'}}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ADICIONAR PADRINHOS - quando não tem nenhum */}
+        {padrinhos.length === 0 && (
+          <div style={{backgroundColor:'rgba(240,165,0,0.05)',border:'1px solid rgba(240,165,0,0.15)',padding:'16px 20px',marginBottom:'24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'10px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+              <span style={{fontSize:'16px'}}>🤫</span>
+              <span style={{fontSize:'13px',color:'rgba(255,255,255,0.55)',fontFamily:'sans-serif'}}>Vocês ainda não cadastraram padrinhos para guardar o segredo</span>
+            </div>
+            <a href="/casal/padrinhos" style={{backgroundColor:'rgba(240,165,0,0.15)',border:'1px solid rgba(240,165,0,0.3)',color:'#F0A500',padding:'8px 20px',fontSize:'11px',letterSpacing:'0.15em',fontFamily:'sans-serif',textDecoration:'none',textTransform:'uppercase'}}>
+              Adicionar padrinhos
+            </a>
+          </div>
+        )}
+
         {/* STATUS DOS PADRINHOS */}
         {padrinhos.length > 0 && (
           <div style={{backgroundColor:'rgba(240,165,0,0.07)',border:'1px solid rgba(240,165,0,0.2)',padding:'20px 24px',marginBottom:'36px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'12px',marginBottom:padrinhos.some(p=>p.comentarios) ? '16px' : '0'}}>
-              <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
                 <span style={{fontSize:'16px'}}>🤫</span>
                 <span style={{fontSize:'13px',color:'rgba(255,255,255,0.7)',fontFamily:'sans-serif'}}>
                   {padrinhosAprovaram
                     ? 'Os padrinhos aprovaram! Vocês podem revelar o destino.'
                     : `Aguardando ${padrinhosPendentes} padrinho${padrinhosPendentes>1?'s':''} aprovar...`}
                 </span>
+                <a href="/casal/padrinhos" style={{fontSize:'11px',color:'rgba(46,134,193,0.7)',fontFamily:'sans-serif',textDecoration:'none',border:'1px solid rgba(46,134,193,0.2)',padding:'4px 12px',letterSpacing:'0.08em'}}>
+                  + Gerenciar
+                </a>
               </div>
               <div style={{display:'flex',gap:'8px'}}>
                 {padrinhos.map(p => (
@@ -200,14 +274,14 @@ export default function PainelCasal() {
         )}
 
         {/* PROPOSTAS */}
-        {propostas.length === 0 ? (
+        {aba === 'propostas' && propostas.length === 0 ? (
           <div style={{textAlign:'center',padding:'80px 20px'}}>
             <div style={{fontSize:'40px',marginBottom:'16px',animation:'pulse 2s ease-in-out infinite'}}>⏳</div>
             <p style={{color:'rgba(255,255,255,0.35)',fontFamily:'sans-serif',fontSize:'16px',lineHeight:1.8}}>
               As agências estão preparando propostas incríveis para vocês.<br/>Em breve chegam aqui!
             </p>
           </div>
-        ) : (
+        ) : aba === 'propostas' ? (
           <>
             <div style={{display:'flex',flexDirection:'column',gap:'20px',marginBottom:'32px'}}>
               {propostas.map((p, i) => (
@@ -317,6 +391,82 @@ export default function PainelCasal() {
           </>
         )}
       </div>
+
+      {/* ABA PADRINHOS */}
+      {aba === 'padrinhos' && (
+        <div style={{maxWidth:'860px',margin:'0 auto',padding:'0 32px 80px'}}>
+          <div style={{marginBottom:'28px'}}>
+            <h2 style={{fontSize:'22px',fontWeight:400,color:'#FFFFFF',margin:'0 0 8px',letterSpacing:'-0.01em'}}>Guardiões do segredo</h2>
+            <p style={{fontSize:'14px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',lineHeight:1.7,margin:0}}>
+              Escolha pessoas de confiança que conhecem bem vocês. Elas vão ver o destino antes e precisam assinar um termo de responsabilidade antes de aprovar.
+            </p>
+          </div>
+
+          {/* Lista de padrinhos */}
+          {padrinhos.length > 0 && (
+            <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'32px'}}>
+              {padrinhos.map(p => (
+                <div key={p.id} style={{backgroundColor:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',padding:'16px 20px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'12px'}}>
+                  <div>
+                    <div style={{fontSize:'15px',color:'#FFFFFF',marginBottom:'2px'}}>{p.nome}</div>
+                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                      {p.aprovado === true && <span style={{fontSize:'11px',color:'#3DD68C',fontFamily:'sans-serif'}}>✓ Aprovado</span>}
+                      {p.aprovado === false && <span style={{fontSize:'11px',color:'#ff6b6b',fontFamily:'sans-serif'}}>✗ Recusado</span>}
+                      {p.aprovado === null && <span style={{fontSize:'11px',color:'rgba(240,165,0,0.8)',fontFamily:'sans-serif'}}>⏳ Aguardando assinatura</span>}
+                    </div>
+                  </div>
+                  {p.aprovado === null && (
+                    <button onClick={() => handleRemoverPadrinho(p.id)}
+                      style={{background:'none',border:'1px solid rgba(255,107,107,0.3)',color:'#ff8080',padding:'5px 14px',fontSize:'11px',fontFamily:'sans-serif',cursor:'pointer',letterSpacing:'0.1em'}}>
+                      Remover
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Formulário novo padrinho */}
+          {padrinhos.length < 3 && (
+            <div style={{backgroundColor:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.07)',padding:'28px'}}>
+              <p style={{fontSize:'11px',letterSpacing:'0.3em',color:'rgba(255,255,255,0.3)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'20px'}}>
+                Adicionar padrinho/madrinha ({padrinhos.length}/3)
+              </p>
+              <form onSubmit={handleAdicionarPadrinho} style={{display:'flex',flexDirection:'column',gap:'16px'}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
+                  <div>
+                    <label style={{display:'block',fontSize:'11px',letterSpacing:'0.15em',color:'rgba(255,255,255,0.35)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'6px'}}>Nome completo *</label>
+                    <input type="text" value={novoPadrinho.nome} onChange={e=>setNovoPadrinho({...novoPadrinho,nome:e.target.value})} required
+                      placeholder="Nome como aparecerá no convite"
+                      style={{width:'100%',padding:'11px 14px',backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#FFFFFF',fontSize:'14px',fontFamily:'sans-serif',boxSizing:'border-box'}}/>
+                  </div>
+                  <div>
+                    <label style={{display:'block',fontSize:'11px',letterSpacing:'0.15em',color:'rgba(255,255,255,0.35)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'6px'}}>E-mail *</label>
+                    <input type="email" value={novoPadrinho.email} onChange={e=>setNovoPadrinho({...novoPadrinho,email:e.target.value})} required
+                      placeholder="email@exemplo.com"
+                      style={{width:'100%',padding:'11px 14px',backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#FFFFFF',fontSize:'14px',fontFamily:'sans-serif',boxSizing:'border-box'}}/>
+                  </div>
+                </div>
+                {msgPadrinho && (
+                  <div style={{padding:'10px 14px',backgroundColor:msgPadrinho.includes('sucesso')?'rgba(61,214,140,0.1)':'rgba(220,60,60,0.1)',border:`1px solid ${msgPadrinho.includes('sucesso')?'rgba(61,214,140,0.3)':'rgba(220,60,60,0.3)'}`,fontSize:'13px',color:msgPadrinho.includes('sucesso')?'#3DD68C':'#ff8080',fontFamily:'sans-serif'}}>
+                    {msgPadrinho}
+                  </div>
+                )}
+                <button type="submit" disabled={adicionando}
+                  style={{backgroundColor:'#2E86C1',color:'#FFFFFF',padding:'12px 32px',fontSize:'11px',letterSpacing:'0.18em',border:'none',textTransform:'uppercase',fontFamily:'sans-serif',cursor:adicionando?'wait':'pointer',alignSelf:'flex-start',opacity:adicionando?0.7:1}}>
+                  {adicionando ? 'Enviando convite...' : '🤫 Enviar convite'}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {padrinhos.length >= 3 && (
+            <div style={{textAlign:'center',padding:'20px',color:'rgba(255,255,255,0.3)',fontFamily:'sans-serif',fontSize:'13px'}}>
+              Máximo de 3 padrinhos atingido.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* MODAL DE CONFIRMAÇÃO */}
       {confirmarModal && (
