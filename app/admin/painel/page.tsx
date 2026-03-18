@@ -17,6 +17,16 @@ type Casal = { id: string; nome_parceiro_1: string; nome_parceiro_2: string; ema
 type Briefing = { id: string; casal_id: string; status: string; respostas: Record<string, unknown>; resumo_ia?: string }
 type Agencia = { id: string; nome_fantasia: string; responsavel: string; email: string; status: string; nota_media: number; total_viagens_fechadas: number; criado_em: string }
 type Proposta = { id: string; destino: string; valor_total: number; status: string; criado_em: string; agencia: { nome_fantasia: string }; briefing: { casal: { nome_parceiro_1: string; nome_parceiro_2: string } } }
+type RecomendacaoDestino = {
+  destino: string; pais: string; titulo: string; justificativa: string
+  experiencias: string[]; melhor_epoca: string; perfil_viagem: string; nivel_exclusividade: string
+}
+type Recomendacoes = {
+  recomendacao_1: RecomendacaoDestino
+  recomendacao_2: RecomendacaoDestino
+  resumo_casal: string
+}
+
 type Comissao = { id: string; valor_viagem: number; percentual: number; valor_comissao: number; status: string; criado_em: string; proposta: { destino: string; agencia: { nome_fantasia: string } } }
 
 export default function PainelAdmin() {
@@ -31,7 +41,7 @@ export default function PainelAdmin() {
   const [salvandoAgencia, setSalvandoAgencia] = useState(false)
   const [msgAgencia, setMsgAgencia] = useState('')
   const [briefingModal, setBriefingModal] = useState<Briefing | null>(null)
-  const [recomendacoes, setRecomendacoes] = useState<Record<string, unknown> | null>(null)
+  const [recomendacoes, setRecomendacoes] = useState<Recomendacoes | null>(null)
   const [gerandoRec, setGerandoRec] = useState(false)
   const [abaModal, setAbaModal] = useState<'bruto' | 'recomendacoes'>('bruto')
   const router = useRouter()
@@ -501,16 +511,16 @@ export default function PainelAdmin() {
                   ) : (
                     <div style={{display:'flex',flexDirection:'column',gap:'24px'}}>
                       {/* Resumo do casal */}
-                      {(recomendacoes as Record<string,unknown>).resumo_casal && (
+                      {recomendacoes.resumo_casal && (
                         <div style={{backgroundColor:'rgba(46,134,193,0.08)',border:'1px solid rgba(46,134,193,0.2)',padding:'18px'}}>
                           <div style={{fontSize:'10px',letterSpacing:'0.3em',color:'#2E86C1',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'8px'}}>Perfil do casal (para as agências)</div>
-                          <p style={{fontSize:'14px',color:'rgba(255,255,255,0.75)',fontFamily:'sans-serif',lineHeight:1.85,margin:0}}>{String((recomendacoes as Record<string,unknown>).resumo_casal)}</p>
+                          <p style={{fontSize:'14px',color:'rgba(255,255,255,0.75)',fontFamily:'sans-serif',lineHeight:1.85,margin:0}}>{String(recomendacoes.resumo_casal)}</p>
                         </div>
                       )}
 
                       {/* Destino 1 */}
                       {([1,2] as const).map(n => {
-                        const rec = (recomendacoes as Record<string,unknown>)[`recomendacao_${n}`] as Record<string,unknown>
+                        const rec = recomendacoes[`recomendacao_${n}` as 'recomendacao_1' | 'recomendacao_2']
                         if (!rec) return null
                         return (
                           <div key={n} style={{border:'1px solid rgba(240,165,0,0.2)',padding:'20px',position:'relative'}}>
@@ -519,21 +529,21 @@ export default function PainelAdmin() {
                             </div>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'8px',marginBottom:'12px'}}>
                               <div>
-                                <h3 style={{fontSize:'22px',fontWeight:400,color:'#FFFFFF',margin:'0 0 4px',letterSpacing:'-0.01em'}}>{String(rec.destino)}</h3>
-                                <p style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',margin:0}}>{String(rec.pais)}</p>
+                                <h3 style={{fontSize:'22px',fontWeight:400,color:'#FFFFFF',margin:'0 0 4px',letterSpacing:'-0.01em'}}>{rec.destino}</h3>
+                                <p style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',margin:0}}>{rec.pais}</p>
                               </div>
-                              <span style={{fontSize:'11px',color:'rgba(240,165,0,0.8)',fontFamily:'sans-serif',backgroundColor:'rgba(240,165,0,0.08)',padding:'4px 10px',border:'1px solid rgba(240,165,0,0.2)'}}>{String(rec.nivel_exclusividade)}</span>
+                              <span style={{fontSize:'11px',color:'rgba(240,165,0,0.8)',fontFamily:'sans-serif',backgroundColor:'rgba(240,165,0,0.08)',padding:'4px 10px',border:'1px solid rgba(240,165,0,0.2)'}}>{rec.nivel_exclusividade}</span>
                             </div>
-                            <p style={{fontSize:'15px',fontStyle:'italic',color:'rgba(255,255,255,0.6)',marginBottom:'12px',lineHeight:1.6}}>"{String(rec.titulo)}"</p>
-                            <p style={{fontSize:'13px',color:'rgba(255,255,255,0.65)',fontFamily:'sans-serif',lineHeight:1.8,marginBottom:'14px'}}>{String(rec.justificativa)}</p>
+                            <p style={{fontSize:'15px',fontStyle:'italic',color:'rgba(255,255,255,0.6)',marginBottom:'12px',lineHeight:1.6}}>"{rec.titulo}"</p>
+                            <p style={{fontSize:'13px',color:'rgba(255,255,255,0.65)',fontFamily:'sans-serif',lineHeight:1.8,marginBottom:'14px'}}>{rec.justificativa}</p>
                             <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'10px'}}>
-                              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',backgroundColor:'rgba(255,255,255,0.05)',padding:'3px 10px'}}>🗓 {String(rec.melhor_epoca)}</span>
-                              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',backgroundColor:'rgba(255,255,255,0.05)',padding:'3px 10px'}}>✈️ {String(rec.perfil_viagem)}</span>
+                              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',backgroundColor:'rgba(255,255,255,0.05)',padding:'3px 10px'}}>🗓 {rec.melhor_epoca}</span>
+                              <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',backgroundColor:'rgba(255,255,255,0.05)',padding:'3px 10px'}}>✈️ {rec.perfil_viagem}</span>
                             </div>
                             {Array.isArray(rec.experiencias) && (
                               <div>
                                 <div style={{fontSize:'10px',letterSpacing:'0.2em',color:'rgba(255,255,255,0.25)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'6px'}}>Experiências</div>
-                                {(rec.experiencias as string[]).map((exp, i) => (
+                                {rec.experiencias.map((exp, i) => (
                                   <div key={i} style={{display:'flex',gap:'8px',marginBottom:'4px'}}>
                                     <span style={{color:'#F0A500',fontSize:'12px',flexShrink:0}}>→</span>
                                     <span style={{fontSize:'13px',color:'rgba(255,255,255,0.6)',fontFamily:'sans-serif',lineHeight:1.6}}>{exp}</span>
