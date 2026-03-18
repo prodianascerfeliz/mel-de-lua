@@ -4,6 +4,9 @@ import { useState } from 'react'
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [contatoModal, setContatoModal] = useState(false)
+  const [contatoForm, setContatoForm] = useState({nome:'',email:'',mensagem:''})
+  const [contatoEnviado, setContatoEnviado] = useState(false)
 
   return (
     <main style={{backgroundColor: '#E8F4FD', color: '#0A1628', minHeight: '100vh', fontFamily: "'Georgia', serif"}}>
@@ -224,7 +227,7 @@ export default function Home() {
       </section>
 
       {/* NÚMEROS */}
-      <section style={{display: 'grid', borderBottom: '1px solid rgba(10,22,40,0.1)'}} className="numbers-grid" >
+      <section style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid rgba(10,22,40,0.1)'}} className="numbers-grid" >
         {[
           {num: '3', label: 'propostas exclusivas', desc: 'Agências curadas competem pelo casal'},
           {num: '100%', label: 'personalizado', desc: 'Nenhuma viagem igual à outra'},
@@ -361,13 +364,78 @@ export default function Home() {
           <div style={{fontSize: '12px', color: '#1B3A6B', letterSpacing: '0.05em', fontFamily: 'sans-serif'}}>2026 Mel de Lua · Todos os direitos reservados</div>
           <div style={{display: 'flex', gap: '28px', fontSize: '12px', color: '#1B3A6B', fontFamily: 'sans-serif'}}>
             <a href="#" style={{textDecoration: 'none', color: 'inherit'}}>Para agências</a>
-            <a href="#" style={{textDecoration: 'none', color: 'inherit'}}>Contato</a>
+            <button onClick={()=>setContatoModal(true)} style={{background:'none',border:'none',cursor:'pointer',color:'inherit',fontSize:'12px',fontFamily:'sans-serif',padding:0}}>Contato</button>
             <a href="/legal" style={{textDecoration: 'none', color: 'inherit'}}>Privacidade</a>
             <a href="/legal" style={{textDecoration: 'none', color: 'inherit'}}>Termos</a>
           </div>
         </div>
       </footer>
 
+
+      {/* MODAL CONTATO */}
+      {contatoModal && (
+        <div style={{position:'fixed',inset:0,backgroundColor:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:'24px'}}
+          onClick={()=>setContatoModal(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{backgroundColor:'#0A1628',border:'1px solid rgba(255,255,255,0.1)',padding:'40px',maxWidth:'480px',width:'100%',position:'relative'}}>
+            <button onClick={()=>setContatoModal(false)} style={{position:'absolute',top:'16px',right:'16px',background:'none',border:'none',color:'rgba(255,255,255,0.4)',fontSize:'20px',cursor:'pointer'}}>✕</button>
+            {!contatoEnviado ? (
+              <>
+                <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px'}}>
+                  <div style={{width:'20px',height:'1px',backgroundColor:'#F0A500'}}/>
+                  <span style={{fontSize:'10px',letterSpacing:'0.4em',color:'#F0A500',textTransform:'uppercase',fontFamily:'sans-serif'}}>Fale conosco</span>
+                </div>
+                <h2 style={{fontSize:'24px',fontWeight:400,color:'#FFFFFF',marginBottom:'8px',letterSpacing:'-0.01em',fontFamily:"Georgia, serif"}}>Como podemos ajudar?</h2>
+                <p style={{fontSize:'13px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',marginBottom:'28px',lineHeight:1.7}}>Responderemos pelo e-mail ou WhatsApp em até 24h.</p>
+                <div style={{display:'flex',flexDirection:'column',gap:'16px',marginBottom:'24px'}}>
+                  <div>
+                    <label style={{display:'block',fontSize:'11px',letterSpacing:'0.2em',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'6px'}}>Nome</label>
+                    <input type="text" value={contatoForm.nome} onChange={e=>setContatoForm({...contatoForm,nome:e.target.value})}
+                      placeholder="Seu nome"
+                      style={{width:'100%',padding:'11px 14px',backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#FFFFFF',fontSize:'14px',fontFamily:'sans-serif',boxSizing:'border-box'}}/>
+                  </div>
+                  <div>
+                    <label style={{display:'block',fontSize:'11px',letterSpacing:'0.2em',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'6px'}}>E-mail</label>
+                    <input type="email" value={contatoForm.email} onChange={e=>setContatoForm({...contatoForm,email:e.target.value})}
+                      placeholder="seu@email.com"
+                      style={{width:'100%',padding:'11px 14px',backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#FFFFFF',fontSize:'14px',fontFamily:'sans-serif',boxSizing:'border-box'}}/>
+                  </div>
+                  <div>
+                    <label style={{display:'block',fontSize:'11px',letterSpacing:'0.2em',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'6px'}}>Mensagem</label>
+                    <textarea value={contatoForm.mensagem} onChange={e=>setContatoForm({...contatoForm,mensagem:e.target.value})}
+                      rows={4} placeholder="Como podemos ajudar?"
+                      style={{width:'100%',padding:'11px 14px',backgroundColor:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',color:'#FFFFFF',fontSize:'14px',fontFamily:'sans-serif',boxSizing:'border-box',resize:'none'}}/>
+                  </div>
+                </div>
+                <div style={{display:'flex',gap:'12px',alignItems:'center',flexWrap:'wrap'}}>
+                  <button
+                    onClick={()=>{
+                      const msg = encodeURIComponent(`Olá! Sou ${contatoForm.nome} (${contatoForm.email}).\n\n${contatoForm.mensagem}`)
+                      window.open(`https://wa.me/5511993580581?text=${msg}`,'_blank')
+                      setContatoEnviado(true)
+                    }}
+                    style={{backgroundColor:'#25D366',color:'#FFFFFF',padding:'11px 24px',fontSize:'12px',letterSpacing:'0.15em',border:'none',fontFamily:'sans-serif',cursor:'pointer',textTransform:'uppercase'}}>
+                    💬 WhatsApp
+                  </button>
+                  <a href={`mailto:kuboferreira@gmail.com?subject=Contato Mel de Lua — ${contatoForm.nome}&body=${encodeURIComponent(contatoForm.mensagem)}`}
+                    style={{backgroundColor:'rgba(46,134,193,0.15)',color:'#FFFFFF',padding:'11px 24px',fontSize:'12px',letterSpacing:'0.15em',border:'1px solid rgba(46,134,193,0.3)',fontFamily:'sans-serif',textDecoration:'none',textTransform:'uppercase'}}>
+                    ✉️ E-mail
+                  </a>
+                </div>
+              </>
+            ) : (
+              <div style={{textAlign:'center',padding:'20px 0'}}>
+                <div style={{fontSize:'48px',marginBottom:'16px'}}>💛</div>
+                <h3 style={{fontSize:'22px',fontWeight:400,color:'#FFFFFF',marginBottom:'12px',fontFamily:"Georgia, serif"}}>Mensagem enviada!</h3>
+                <p style={{fontSize:'14px',color:'rgba(255,255,255,0.5)',fontFamily:'sans-serif',lineHeight:1.8,marginBottom:'24px'}}>Responderemos em breve pelo canal escolhido.</p>
+                <button onClick={()=>{setContatoModal(false);setContatoEnviado(false);setContatoForm({nome:'',email:'',mensagem:''})}}
+                  style={{background:'none',border:'1px solid rgba(255,255,255,0.2)',color:'rgba(255,255,255,0.5)',padding:'10px 24px',fontSize:'12px',letterSpacing:'0.15em',fontFamily:'sans-serif',cursor:'pointer'}}>
+                  Fechar
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   )
 }
