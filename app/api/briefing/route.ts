@@ -32,8 +32,8 @@ Você pensa em destinos SURPREENDENTES e não óbvios — lugares que vão causa
 - Eslovênia — lago Bled, Alps, compacto e perfeito
 - Ilha Socotra (Iêmen/Emirados) — árvores dracaenas, alienígena e surreal
 - Noruega do Norte (Tromsø) — aurora boreal garantida no inverno
-- Ilhas Azul (Maldivas menos óbvias) — Ilhas Andaman, Raja Ampat
-- Antofagasta / Atacama — deserto lunar, estrelas, salineras
+- Ilhas Andaman, Raja Ampat — Maldivas menos óbvias
+- Atacama — deserto lunar, estrelas, salineras
 - Valletta (Malta) — Mediterrâneo, história, menos turístico que Itália
 - Ilha de Páscoa — moais, fim do mundo, misterioso
 - Bhutan — reino budista, felicidade nacional bruta, inacessível
@@ -47,7 +47,7 @@ Você cruza o perfil do casal com esses e outros destinos mentalmente, sem nunca
 
 BLOCO 1 — Quem são vocês:
 - Nome dos dois
-- E-mail para contato
+- E-mail para contato (OBRIGATÓRIO — peça com carinho, diga que é para enviar o acesso ao painel deles)
 - Como se conheceram (a história)
 - Personalidade do casal (introvertido/extrovertido, aventureiro/tranquilo, espontâneo/planejado)
 
@@ -71,7 +71,7 @@ BLOCO 4 — A viagem em si:
 - O casamento terá festa? Para quantas pessoas? Onde será?
 
 ## ORDEM SUGERIDA (mas seja flexível, deixe fluir)
-Comece sempre pelos nomes. Depois vá para a história do casal. Então para como viajam. Depois comida e estilo. Por último logística (data, orçamento).
+Comece sempre pelos nomes. Depois vá para a história do casal. Então para como viajam. Depois comida e estilo. Por último logística (data, orçamento). O e-mail pode ser pedido no início ou no final — onde encaixar melhor na conversa.
 
 ## FINALIZANDO
 Quando tiver coletado informações suficientes dos 4 blocos (nome, email, orçamento e data são OBRIGATÓRIOS), encerre com entusiasmo genuíno.
@@ -79,7 +79,8 @@ Quando tiver coletado informações suficientes dos 4 blocos (nome, email, orça
 Sua mensagem final deve:
 1. Ser calorosa e animada, sem revelar nenhum destino
 2. Dizer que o perfil do casal foi montado e que as agências vão adorar
-3. Conter exatamente o marcador [BRIEFING_COMPLETO] seguido do JSON abaixo
+3. Mencionar que eles receberão um e-mail com o acesso ao painel para acompanhar as propostas
+4. Conter exatamente o marcador [BRIEFING_COMPLETO] seguido do JSON abaixo
 
 JSON format:
 {
@@ -102,6 +103,15 @@ JSON format:
   "tipo_festa": "",
   "local_casamento": ""
 }`
+
+function gerarSenhaAleatoria(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+  let senha = ''
+  for (let i = 0; i < 10; i++) {
+    senha += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return senha
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -144,7 +154,20 @@ export async function POST(req: NextRequest) {
         const jsonMatch = reply.match(/\{[\s\S]*\}/)
         if (jsonMatch) {
           const briefingData = JSON.parse(jsonMatch[0])
+          const senhaAcesso = gerarSenhaAleatoria()
 
+          // 1. Criar usuário no Supabase Auth
+          const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+            email: briefingData.email,
+            password: senhaAcesso,
+            email_confirm: true, // confirma automaticamente sem precisar de e-mail de verificação
+          })
+
+          if (authError && !authError.message.includes('already registered')) {
+            console.error('Erro ao criar usuário Auth:', authError)
+          }
+
+          // 2. Salvar casal na tabela casais
           const { data: casal, error: casalError } = await supabase
             .from('casais')
             .insert({
@@ -157,10 +180,15 @@ export async function POST(req: NextRequest) {
             .single()
 
           if (!casalError && casal) {
+            // 3. Salvar briefing com senha temporária para envio futuro por e-mail
             await supabase.from('briefings').insert({
               casal_id: casal.id,
-              respostas: briefingData,
-              status: 'aguardando_revisao' // Admin precisa revisar antes de liberar para agências,
+              respostas: {
+                ...briefingData,
+                _senha_acesso_temp: senhaAcesso, // será usado pelo módulo de e-mail
+                _auth_user_id: authUser?.user?.id || null,
+              },
+              status: 'aguardando_revisao',
             })
           }
         }
