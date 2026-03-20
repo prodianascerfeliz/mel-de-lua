@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Fundo azul noite -->
+  <rect width="32" height="32" rx="8" fill="#060d1a"/>
+  
+  <!-- Lua crescente dourada -->
+  <!-- Círculo principal (lua cheia) -->
+  <circle cx="17" cy="16" r="9" fill="#F0A500"/>
+  <!-- Círculo que "corta" criando o crescente -->
+  <circle cx="21" cy="14" r="8" fill="#060d1a"/>
+  
+  <!-- Brilho sutil no topo da lua -->
+  <circle cx="13.5" cy="11" r="1.5" fill="#FFD57A" opacity="0.6"/>
+</svg>
