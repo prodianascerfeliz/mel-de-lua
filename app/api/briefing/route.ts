@@ -6,6 +6,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 )
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.meldelua.com.br'
+
 const SYSTEM_PROMPT = `Você é a Mel — assistente de viagens da plataforma Mel de Lua, especializada em luas de mel personalizadas.
 
 ## SUA PERSONALIDADE
@@ -113,6 +115,18 @@ function gerarSenhaAleatoria(): string {
   return senha
 }
 
+async function dispararEmail(tipo: string, dados: Record<string, unknown>) {
+  try {
+    await fetch(`${BASE_URL}/api/email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipo, dados }),
+    })
+  } catch (e) {
+    console.error('Erro ao disparar e-mail:', tipo, e)
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { messages, sessionId, isFirst } = await req.json()
@@ -160,7 +174,7 @@ export async function POST(req: NextRequest) {
           const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
             email: briefingData.email,
             password: senhaAcesso,
-            email_confirm: true, // confirma automaticamente sem precisar de e-mail de verificação
+            email_confirm: true,
           })
 
           if (authError && !authError.message.includes('already registered')) {
@@ -180,15 +194,30 @@ export async function POST(req: NextRequest) {
             .single()
 
           if (!casalError && casal) {
-            // 3. Salvar briefing com senha temporária para envio futuro por e-mail
+            // 3. Salvar briefing
             await supabase.from('briefings').insert({
               casal_id: casal.id,
               respostas: {
                 ...briefingData,
-                _senha_acesso_temp: senhaAcesso, // será usado pelo módulo de e-mail
+                _senha_acesso_temp: senhaAcesso,
                 _auth_user_id: authUser?.user?.id || null,
               },
               status: 'aguardando_revisao',
+            })
+
+            // 4. Disparar e-mails automáticos
+            const nome1 = briefingData.nome_parceiro_1
+            const nome2 = briefingData.nome_parceiro_2
+            const emailCasal = briefingData.email
+
+            // Boas-vindas para o casal com senha de acesso
+            await dispararEmail('boas_vindas_casal', {
+              nome1, nome2, email: emailCasal, senha: senhaAcesso
+            })
+
+            // Notificar admin sobre novo briefing
+            await dispararEmail('admin_novo_briefing', {
+              nome1, nome2, email: emailCasal
             })
           }
         }
