@@ -9,7 +9,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-const ADMIN_EMAILS = ['prodianascerfeliz@gmail.com']
+const ADMIN_EMAILS = ['prodianascerfeliz@gmail.com','vanda.almeida@dimensa.com.br']
 
 type Aba = 'overview' | 'casais' | 'agencias' | 'propostas' | 'comissoes' | 'cadastrar'
 
