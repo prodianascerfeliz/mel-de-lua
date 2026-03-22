@@ -68,6 +68,7 @@ BLOCO 3 — O que vocês gostam:
 
 BLOCO 4 — A viagem em si:
 - Data do casamento
+- Quando pretendem viajar? (data prevista de início da viagem — pode ser diferente da data do casamento)
 - Duração desejada da lua de mel
 - Orçamento estimado (seja gentil: "sem compromisso, só para eu entender a faixa — passagem econômica ou primeira classe muda tudo!")
 - O casamento terá festa? Para quantas pessoas? Onde será?
@@ -101,6 +102,7 @@ JSON format:
   "clima_preferido": "",
   "orcamento": "",
   "data_casamento": "",
+  "data_viagem": "",
   "duracao_dias": 0,
   "tipo_festa": "",
   "local_casamento": ""
