@@ -224,9 +224,9 @@ export default function PainelCasal() {
               <span style={{fontSize:'16px'}}>🤫</span>
               <span style={{fontSize:'13px',color:'rgba(255,255,255,0.55)',fontFamily:'sans-serif'}}>Vocês ainda não cadastraram padrinhos para guardar o segredo</span>
             </div>
-            <a href="/casal/padrinhos" style={{backgroundColor:'rgba(240,165,0,0.15)',border:'1px solid rgba(240,165,0,0.3)',color:'#F0A500',padding:'8px 20px',fontSize:'11px',letterSpacing:'0.15em',fontFamily:'sans-serif',textDecoration:'none',textTransform:'uppercase'}}>
+            <button onClick={() => setAba('padrinhos')} style={{backgroundColor:'rgba(240,165,0,0.15)',border:'1px solid rgba(240,165,0,0.3)',color:'#F0A500',padding:'8px 20px',fontSize:'11px',letterSpacing:'0.15em',fontFamily:'sans-serif',cursor:'pointer',textTransform:'uppercase'}}>
               Adicionar padrinhos
-            </a>
+            </button>
           </div>
         )}
 
@@ -241,7 +241,7 @@ export default function PainelCasal() {
                     ? 'Os padrinhos aprovaram! Vocês podem revelar o destino.'
                     : `Aguardando ${padrinhosPendentes} padrinho${padrinhosPendentes>1?'s':''} aprovar...`}
                 </span>
-                <a href="/casal/padrinhos" style={{fontSize:'11px',color:'rgba(46,134,193,0.7)',fontFamily:'sans-serif',textDecoration:'none',border:'1px solid rgba(46,134,193,0.2)',padding:'4px 12px',letterSpacing:'0.08em'}}>
+                <a onClick={() => setAba('padrinhos')} style={{fontSize:'11px',color:'rgba(46,134,193,0.7)',fontFamily:'sans-serif',textDecoration:'none',border:'1px solid rgba(46,134,193,0.2)',padding:'4px 12px',letterSpacing:'0.08em'}}>
                   + Gerenciar
                 </a>
               </div>
