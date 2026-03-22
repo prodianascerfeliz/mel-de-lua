@@ -17,7 +17,7 @@ function FormularioProposta() {
   const briefingId = searchParams.get('briefing')
 
   const [agenciaId, setAgenciaId] = useState<string | null>(null)
-  const [briefingResumo, setBriefingResumo] = useState('')
+  const [briefingDados, setBriefingDados] = useState<{resumo_ia: string, respostas: Record<string, unknown>} | null>(null)
   const [loading, setLoading] = useState(false)
   const [enviado, setEnviado] = useState(false)
 
@@ -42,8 +42,8 @@ function FormularioProposta() {
     setAgenciaId(user.id)
 
     if (briefingId) {
-      const { data: b } = await supabase.from('briefings').select('resumo_ia').eq('id', briefingId).single()
-      if (b) setBriefingResumo(b.resumo_ia || '')
+      const { data: b } = await supabase.from('briefings').select('resumo_ia, respostas').eq('id', briefingId).single()
+      if (b) setBriefingDados({ resumo_ia: b.resumo_ia || '', respostas: b.respostas || {} })
     }
   }
 
@@ -139,14 +139,78 @@ function FormularioProposta() {
           <h1 style={{fontSize: '32px', fontWeight: 400, color: '#FFFFFF', margin: '0 0 12px', letterSpacing: '-0.01em'}}>
             Criar proposta para o casal
           </h1>
-          {briefingResumo && (
-            <div style={{
-              backgroundColor: 'rgba(46,134,193,0.08)',
-              border: '1px solid rgba(46,134,193,0.2)',
-              padding: '16px 20px', marginTop: '20px',
-            }}>
-              <p style={{fontSize: '11px', letterSpacing: '0.3em', color: '#2E86C1', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '8px'}}>Perfil do casal</p>
-              <p style={{fontSize: '14px', color: 'rgba(255,255,255,0.65)', fontWeight: 300, lineHeight: 1.8, margin: 0}}>{briefingResumo}</p>
+          {briefingDados && (
+            <div style={{marginTop: '24px'}}>
+              {/* Perfil narrativo gerado pela IA */}
+              {(() => {
+                let rec: Record<string,unknown> | null = null
+                try { rec = typeof briefingDados.resumo_ia === 'string' && briefingDados.resumo_ia ? JSON.parse(briefingDados.resumo_ia) : null } catch {}
+                const r = briefingDados.respostas || {}
+                return (
+                  <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+                    {/* Resumo narrativo */}
+                    {rec?.resumo_casal && (
+                      <div style={{backgroundColor:'rgba(46,134,193,0.08)',border:'1px solid rgba(46,134,193,0.2)',padding:'18px 20px'}}>
+                        <p style={{fontSize:'10px',letterSpacing:'0.3em',color:'#2E86C1',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'8px'}}>Perfil do casal</p>
+                        <p style={{fontSize:'14px',color:'rgba(255,255,255,0.75)',fontWeight:300,lineHeight:1.85,margin:0,fontStyle:'italic'}}>"{String(rec.resumo_casal)}"</p>
+                      </div>
+                    )}
+
+                    {/* Ficha estruturada */}
+                    <div style={{backgroundColor:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',padding:'20px'}}>
+                      <p style={{fontSize:'10px',letterSpacing:'0.3em',color:'#F0A500',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'16px'}}>Ficha do casal</p>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                        {[
+                          {label:'Orçamento', valor: r.orcamento},
+                          {label:'Data do casamento', valor: r.data_casamento},
+                          {label:'Duração desejada', valor: r.duracao_dias ? `${r.duracao_dias} dias` : null},
+                          {label:'Preferência de destino', valor: r.preferencia_tipo},
+                          {label:'Ritmo de viagem', valor: r.ritmo_viagem},
+                          {label:'Clima preferido', valor: r.clima_preferido},
+                          {label:'Gastronomia', valor: r.gastronomia},
+                          {label:'Restrição alimentar', valor: r.restricao_alimentar || 'Nenhuma'},
+                          {label:'Local do casamento', valor: r.local_casamento},
+                          {label:'Tipo de festa', valor: r.tipo_festa},
+                        ].filter(i => i.valor).map(item => (
+                          <div key={item.label} style={{borderBottom:'1px solid rgba(255,255,255,0.05)',paddingBottom:'10px'}}>
+                            <div style={{fontSize:'10px',letterSpacing:'0.2em',color:'rgba(255,255,255,0.3)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'4px'}}>{item.label}</div>
+                            <div style={{fontSize:'14px',color:'rgba(255,255,255,0.8)',fontFamily:'sans-serif'}}>{String(item.valor)}</div>
+                          </div>
+                        ))}
+                      </div>
+                      {r.atividades_juntos && (
+                        <div style={{borderTop:'1px solid rgba(255,255,255,0.05)',paddingTop:'12px',marginTop:'4px'}}>
+                          <div style={{fontSize:'10px',letterSpacing:'0.2em',color:'rgba(255,255,255,0.3)',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'4px'}}>O que gostam de fazer juntos</div>
+                          <div style={{fontSize:'14px',color:'rgba(255,255,255,0.8)',fontFamily:'sans-serif',lineHeight:1.7}}>{String(r.atividades_juntos)}</div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Destinos recomendados pela IA */}
+                    {rec && (rec.recomendacao_1 || rec.recomendacao_2) && (
+                      <div style={{backgroundColor:'rgba(240,165,0,0.05)',border:'1px solid rgba(240,165,0,0.2)',padding:'20px'}}>
+                        <p style={{fontSize:'10px',letterSpacing:'0.3em',color:'#F0A500',textTransform:'uppercase',fontFamily:'sans-serif',marginBottom:'16px'}}>Destinos recomendados pela IA Mel de Lua</p>
+                        <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+                          {([rec.recomendacao_1, rec.recomendacao_2] as Record<string,unknown>[]).filter(Boolean).map((dest, i) => dest && (
+                            <div key={i} style={{borderLeft:'2px solid rgba(240,165,0,0.4)',paddingLeft:'14px'}}>
+                              <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:'8px',marginBottom:'6px'}}>
+                                <span style={{fontSize:'16px',fontWeight:400,color:'#FFFFFF',fontFamily:'Georgia,serif'}}>{String(dest.destino)}, {String(dest.pais)}</span>
+                                <span style={{fontSize:'11px',color:'rgba(240,165,0,0.7)',fontFamily:'sans-serif',backgroundColor:'rgba(240,165,0,0.08)',padding:'2px 10px'}}>{String(dest.nivel_exclusividade)}</span>
+                              </div>
+                              <p style={{fontSize:'13px',fontStyle:'italic',color:'rgba(255,255,255,0.5)',margin:'0 0 6px',lineHeight:1.6}}>"{String(dest.titulo)}"</p>
+                              <p style={{fontSize:'13px',color:'rgba(255,255,255,0.6)',fontFamily:'sans-serif',lineHeight:1.7,margin:'0 0 8px',fontWeight:300}}>{String(dest.justificativa)}</p>
+                              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                                <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',backgroundColor:'rgba(255,255,255,0.05)',padding:'3px 10px'}}>🗓 {String(dest.melhor_epoca)}</span>
+                                <span style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontFamily:'sans-serif',backgroundColor:'rgba(255,255,255,0.05)',padding:'3px 10px'}}>✈️ {String(dest.perfil_viagem)}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
             </div>
           )}
         </div>
