@@ -17,6 +17,7 @@ function FormularioProposta() {
   const briefingId = searchParams.get('briefing')
 
   const [agenciaId, setAgenciaId] = useState<string | null>(null)
+  type RecIA = { resumo_casal?: string; recomendacao_1?: Record<string,unknown>; recomendacao_2?: Record<string,unknown> }
   const [briefingDados, setBriefingDados] = useState<{resumo_ia: string, respostas: Record<string, unknown>} | null>(null)
   const [loading, setLoading] = useState(false)
   const [enviado, setEnviado] = useState(false)
@@ -143,8 +144,8 @@ function FormularioProposta() {
             <div style={{marginTop: '24px'}}>
               {/* Perfil narrativo gerado pela IA */}
               {(() => {
-                let rec: Record<string,unknown> | null = null
-                try { rec = typeof briefingDados.resumo_ia === 'string' && briefingDados.resumo_ia ? JSON.parse(briefingDados.resumo_ia) : null } catch {}
+                let rec: RecIA | null = null
+                try { rec = typeof briefingDados.resumo_ia === 'string' && briefingDados.resumo_ia ? JSON.parse(briefingDados.resumo_ia) as RecIA : null } catch {}
                 const r = briefingDados.respostas || {}
                 return (
                   <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
