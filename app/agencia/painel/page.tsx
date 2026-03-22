@@ -11,7 +11,7 @@ const supabase = createClient(
 
 type Briefing = {
   id: string
-  resumo_ia: string
+  perfil_ia: string
   status: string
   criado_em: string
   data_casamento?: string
@@ -55,20 +55,30 @@ export default function PainelAgencia() {
     // Busca briefings disponíveis com resumo gerado pela IA
     const { data: bs } = await supabase
       .from('briefings')
-      .select('id, resumo_ia, status, criado_em, respostas')
+      .select('id, status, criado_em, respostas')
       .in('status', ['aguardando_agencias', 'em_andamento'])
       .order('criado_em', { ascending: false })
 
     if (bs) {
-      setBriefings(bs.map(b => ({
-        id: b.id,
-        resumo_ia: b.resumo_ia || 'Resumo sendo gerado...',
-        status: b.status,
-        criado_em: b.criado_em,
-        data_casamento: b.respostas?.data_casamento,
-        orcamento: b.respostas?.orcamento,
-        preferencia_tipo: b.respostas?.preferencia_tipo,
-      })))
+      setBriefings(bs.map(b => {
+        // Tenta extrair resumo_casal das recomendações da IA salvas no briefing
+        let resumo = 'Perfil sendo preparado...'
+        try {
+          const rec = typeof b.respostas?.resumo_ia === 'string'
+            ? JSON.parse(b.respostas.resumo_ia)
+            : b.respostas?.resumo_ia
+          if (rec?.resumo_casal) resumo = rec.resumo_casal
+        } catch {}
+        return {
+          id: b.id,
+          perfil_ia: resumo,
+          status: b.status,
+          criado_em: b.criado_em,
+          data_casamento: b.respostas?.data_casamento,
+          orcamento: b.respostas?.orcamento,
+          preferencia_tipo: b.respostas?.preferencia_tipo,
+        }
+      }))
     }
 
     // Busca propostas da agência
@@ -227,7 +237,7 @@ export default function PainelAgencia() {
                       </div>
 
                       <p style={{fontSize: '15px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, fontWeight: 300, margin: '0 0 20px'}}>
-                        {b.resumo_ia}
+                        {b.perfil_ia}
                       </p>
 
                       <div style={{display: 'flex', gap: '12px', alignItems: 'center'}}>
