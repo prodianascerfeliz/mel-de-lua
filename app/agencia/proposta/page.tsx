@@ -146,7 +146,7 @@ function FormularioProposta() {
               {(() => {
                 let rec: RecIA | null = null
                 try { rec = typeof briefingDados.resumo_ia === 'string' && briefingDados.resumo_ia ? JSON.parse(briefingDados.resumo_ia) as RecIA : null } catch {}
-                const r = briefingDados.respostas || {}
+                const r = briefingDados.respostas as Record<string, string | number | boolean | null | undefined> || {}
                 return (
                   <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                     {/* Resumo narrativo */}
