@@ -154,26 +154,81 @@ function FormularioProposta() {
         {Object.keys(respostas).length > 0 && (
           <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', padding: '18px 20px', marginBottom: '24px' }}>
             <p style={{ fontSize: '10px', letterSpacing: '0.3em', color: '#F0A500', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '12px' }}>Dados para o orçamento</p>
-            <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              {[
-                { label: 'Orçamento', valor: respostas.orcamento },
-                { label: 'Data prevista de viagem', valor: respostas.data_viagem || respostas.data_casamento },
-                { label: 'Data do casamento', valor: respostas.data_casamento },
-                { label: 'Duração desejada', valor: respostas.duracao_dias ? `${respostas.duracao_dias} dias` : null },
-                { label: 'Preferência de destino', valor: respostas.preferencia_tipo },
-                { label: 'Ritmo de viagem', valor: respostas.ritmo_viagem },
-                { label: 'Clima preferido', valor: respostas.clima_preferido },
-                { label: 'Aceita repetir destino', valor: respostas.aceita_repetir_destino === 'true' ? 'Sim' : respostas.aceita_repetir_destino === 'false' ? 'Não' : null },
-                { label: 'Gastronomia', valor: respostas.gastronomia },
-                { label: 'Restrição alimentar', valor: respostas.restricao_alimentar || 'Nenhuma' },
-                { label: 'Atividades juntos', valor: respostas.atividades_juntos },
-                { label: 'Local do casamento', valor: respostas.local_casamento },
-              ].filter(i => i.valor).map(item => (
-                <div key={item.label} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
-                  <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '3px' }}>{item.label}</div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', fontFamily: 'sans-serif' }}>{String(item.valor)}</div>
+            {/* Solicitação de cotação técnica */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+              {/* Linha 1: Datas */}
+              <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                {[
+                  { label: 'Data de ida', valor: respostas.data_viagem || respostas.data_casamento },
+                  { label: 'Data de volta', valor: (() => { try { const d = new Date(respostas.data_viagem || respostas.data_casamento); d.setDate(d.getDate() + (parseInt(respostas.duracao_dias) || 10)); return d.toLocaleDateString('pt-BR') } catch { return respostas.duracao_dias ? `${respostas.duracao_dias} dias após a ida` : null } })() },
+                ].map((item, i) => item.valor && (
+                  <div key={item.label} style={{ padding: '12px 14px', borderRight: i === 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                    <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '3px' }}>{item.label}</div>
+                    <div style={{ fontSize: '14px', color: '#FFFFFF', fontFamily: 'sans-serif', fontWeight: 400 }}>{item.valor}</div>
+                  </div>
+                ))}
+              </div>
+              {/* Linha 2: Duração e orçamento */}
+              <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                {[
+                  { label: 'Duração', valor: respostas.duracao_dias ? `${respostas.duracao_dias} noites` : null },
+                  { label: 'Orçamento total disponível', valor: respostas.orcamento },
+                ].map((item, i) => item.valor && (
+                  <div key={item.label} style={{ padding: '12px 14px', borderRight: i === 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                    <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '3px' }}>{item.label}</div>
+                    <div style={{ fontSize: '14px', color: '#FFFFFF', fontFamily: 'sans-serif', fontWeight: 400 }}>{item.valor}</div>
+                  </div>
+                ))}
+              </div>
+              {/* Linha 3: Origem e destinos sugeridos */}
+              <div style={{ padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '3px' }}>Origem</div>
+                <div style={{ fontSize: '14px', color: '#FFFFFF', fontFamily: 'sans-serif' }}>GRU — São Paulo / Guarulhos</div>
+              </div>
+              {recIA && (recIA.recomendacao_1 || recIA.recomendacao_2) && (
+                <div style={{ padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: '#F0A500', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '8px' }}>Destinos sugeridos para cotar</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {[recIA.recomendacao_1, recIA.recomendacao_2].filter(Boolean).map((dest, i) => dest && (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                        <div>
+                          <span style={{ fontSize: '14px', color: '#FFFFFF', fontFamily: 'sans-serif' }}>Destino {i+1}: <strong>{dest.destino}, {dest.pais}</strong></span>
+                          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontFamily: 'sans-serif', marginLeft: '10px' }}>Melhor época: {dest.melhor_epoca}</span>
+                        </div>
+                        <span style={{ fontSize: '11px', color: 'rgba(240,165,0,0.8)', fontFamily: 'sans-serif', backgroundColor: 'rgba(240,165,0,0.08)', padding: '2px 10px' }}>{dest.perfil_viagem}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
+              {/* O que incluir no orçamento */}
+              <div style={{ padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '8px' }}>Incluir no orçamento</div>
+                <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                  {[
+                    { item: 'Passagens aéreas (ida e volta)', sim: true },
+                    { item: 'Hospedagem', sim: true },
+                    { item: 'Translados', sim: true },
+                    { item: 'Seguro viagem', sim: true },
+                    { item: 'Pensão alimentar', sim: false },
+                    { item: 'Passeios opcionais', sim: false },
+                  ].map(({ item, sim }) => (
+                    <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '13px', color: sim ? '#3DD68C' : 'rgba(255,255,255,0.3)', flexShrink: 0 }}>{sim ? '✓' : '—'}</span>
+                      <span style={{ fontSize: '12px', color: sim ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)', fontFamily: 'sans-serif' }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Restrições alimentares */}
+              {respostas.restricao_alimentar && (
+                <div style={{ padding: '12px 14px' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: 'rgba(255,107,107,0.7)', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '3px' }}>⚠️ Restrições alimentares</div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', fontFamily: 'sans-serif' }}>{respostas.restricao_alimentar}</div>
+                </div>
+              )}
+            </div>
+            
             </div>
           </div>
         )}
