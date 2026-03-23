@@ -228,30 +228,6 @@ function FormularioProposta() {
                 </div>
               )}
             </div>
-            
-            </div>
-          </div>
-        )}
-
-        {/* Destinos recomendados pela IA */}
-        {recIA && (recIA.recomendacao_1 || recIA.recomendacao_2) && (
-          <div style={{ backgroundColor: 'rgba(240,165,0,0.05)', border: '1px solid rgba(240,165,0,0.2)', padding: '18px 20px', marginBottom: '14px' }}>
-            <p style={{ fontSize: '10px', letterSpacing: '0.3em', color: '#F0A500', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '14px' }}>Destinos recomendados pela IA Mel de Lua</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {([recIA.recomendacao_1, recIA.recomendacao_2]).filter(Boolean).map((dest, i) => dest && (
-                <div key={i} style={{ borderLeft: '2px solid rgba(240,165,0,0.4)', paddingLeft: '14px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '16px', fontWeight: 400, color: '#FFFFFF', fontFamily: 'Georgia,serif' }}>Destino {i+1}: {dest.destino}, {dest.pais}</span>
-                    <span style={{ fontSize: '11px', color: 'rgba(240,165,0,0.8)', fontFamily: 'sans-serif', backgroundColor: 'rgba(240,165,0,0.08)', padding: '2px 10px' }}>{dest.nivel_exclusividade}</span>
-                  </div>
-                  <p style={{ fontSize: '12px', fontStyle: 'italic', color: 'rgba(255,255,255,0.5)', margin: '0 0 6px' }}>"{dest.titulo}"</p>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: 'sans-serif', backgroundColor: 'rgba(255,255,255,0.05)', padding: '3px 10px' }}>🗓 {dest.melhor_epoca}</span>
-                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: 'sans-serif', backgroundColor: 'rgba(255,255,255,0.05)', padding: '3px 10px' }}>✈️ {dest.perfil_viagem}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         )}
 
