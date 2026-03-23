@@ -159,8 +159,8 @@ function FormularioProposta() {
               {/* Linha 1: Datas */}
               <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 {[
-                  { label: 'Data de ida', valor: respostas.data_viagem || respostas.data_casamento },
-                  { label: 'Data de volta', valor: (() => { try { const d = new Date(respostas.data_viagem || respostas.data_casamento); d.setDate(d.getDate() + (parseInt(respostas.duracao_dias) || 10)); return d.toLocaleDateString('pt-BR') } catch { return respostas.duracao_dias ? `${respostas.duracao_dias} dias após a ida` : null } })() },
+                  { label: 'Data de ida', valor: respostas.data_viagem || respostas.data_casamento || null },
+                  { label: 'Data de volta', valor: (() => { try { const raw = respostas.data_viagem || respostas.data_casamento; if (!raw) return null; const partes = raw.split('/'); const d = partes.length === 3 ? new Date(parseInt(partes[2]), parseInt(partes[1])-1, parseInt(partes[0])) : new Date(raw); if (isNaN(d.getTime())) return `${respostas.duracao_dias || 10} dias após a ida`; d.setDate(d.getDate() + (parseInt(respostas.duracao_dias) || 10)); return d.toLocaleDateString('pt-BR') } catch { return respostas.duracao_dias ? `${respostas.duracao_dias} dias após a ida` : null } })() },
                 ].map((item, i) => item.valor && (
                   <div key={item.label} style={{ padding: '12px 14px', borderRight: i === 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
                     <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '3px' }}>{item.label}</div>
@@ -201,6 +201,29 @@ function FormularioProposta() {
                   </div>
                 </div>
               )}
+              {/* Destinos sugeridos */}
+              {recIA && (recIA.recomendacao_1 || recIA.recomendacao_2) && (
+                <div style={{ padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: '#F0A500', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '10px' }}>Destinos para cotar</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {([recIA.recomendacao_1, recIA.recomendacao_2] as Array<{destino:string;pais:string;titulo:string;melhor_epoca:string;perfil_viagem:string;nivel_exclusividade:string} | undefined>).filter(Boolean).map((dest, i) => dest && (
+                      <div key={i} style={{ backgroundColor: 'rgba(240,165,0,0.06)', border: '1px solid rgba(240,165,0,0.15)', padding: '10px 14px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '14px', color: '#FFFFFF', fontFamily: 'sans-serif', fontWeight: 400 }}>
+                            <strong style={{ color: '#F0A500' }}>Destino {i+1}:</strong> {dest.destino}, {dest.pais}
+                          </span>
+                          <span style={{ fontSize: '11px', color: 'rgba(240,165,0,0.7)', fontFamily: 'sans-serif', backgroundColor: 'rgba(240,165,0,0.08)', padding: '2px 8px' }}>{dest.perfil_viagem}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: 'sans-serif' }}>🗓 Melhor época: {dest.melhor_epoca}</span>
+                          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: 'sans-serif' }}>⭐ {dest.nivel_exclusividade}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* O que incluir no orçamento */}
               <div style={{ padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '8px' }}>Incluir no orçamento</div>
