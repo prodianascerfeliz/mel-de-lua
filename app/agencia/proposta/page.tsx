@@ -21,6 +21,7 @@ function FormularioProposta() {
   const [agenciaId, setAgenciaId] = useState<string | null>(null)
   const [agenciaNome, setAgenciaNome] = useState('')
   const [resumoCasal, setResumoCasal] = useState('')
+  const [recIA, setRecIA] = useState<{recomendacao_1?: {destino:string;pais:string;titulo:string;justificativa:string;melhor_epoca:string;perfil_viagem:string;nivel_exclusividade:string}, recomendacao_2?: {destino:string;pais:string;titulo:string;justificativa:string;melhor_epoca:string;perfil_viagem:string;nivel_exclusividade:string}} | null>(null)
   const [respostas, setRespostas] = useState<Record<string, string>>({})
   const [arquivo, setArquivo] = useState<File | null>(null)
   const [analisando, setAnalisando] = useState(false)
@@ -159,13 +160,40 @@ function FormularioProposta() {
                 { label: 'Data prevista de viagem', valor: respostas.data_viagem || respostas.data_casamento },
                 { label: 'Data do casamento', valor: respostas.data_casamento },
                 { label: 'Duração desejada', valor: respostas.duracao_dias ? `${respostas.duracao_dias} dias` : null },
+                { label: 'Preferência de destino', valor: respostas.preferencia_tipo },
+                { label: 'Ritmo de viagem', valor: respostas.ritmo_viagem },
                 { label: 'Clima preferido', valor: respostas.clima_preferido },
+                { label: 'Aceita repetir destino', valor: respostas.aceita_repetir_destino === 'true' ? 'Sim' : respostas.aceita_repetir_destino === 'false' ? 'Não' : null },
                 { label: 'Gastronomia', valor: respostas.gastronomia },
                 { label: 'Restrição alimentar', valor: respostas.restricao_alimentar || 'Nenhuma' },
+                { label: 'Atividades juntos', valor: respostas.atividades_juntos },
+                { label: 'Local do casamento', valor: respostas.local_casamento },
               ].filter(i => i.valor).map(item => (
                 <div key={item.label} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '8px' }}>
                   <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '3px' }}>{item.label}</div>
                   <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', fontFamily: 'sans-serif' }}>{String(item.valor)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Destinos recomendados pela IA */}
+        {recIA && (recIA.recomendacao_1 || recIA.recomendacao_2) && (
+          <div style={{ backgroundColor: 'rgba(240,165,0,0.05)', border: '1px solid rgba(240,165,0,0.2)', padding: '18px 20px', marginBottom: '14px' }}>
+            <p style={{ fontSize: '10px', letterSpacing: '0.3em', color: '#F0A500', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '14px' }}>Destinos recomendados pela IA Mel de Lua</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {([recIA.recomendacao_1, recIA.recomendacao_2]).filter(Boolean).map((dest, i) => dest && (
+                <div key={i} style={{ borderLeft: '2px solid rgba(240,165,0,0.4)', paddingLeft: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '16px', fontWeight: 400, color: '#FFFFFF', fontFamily: 'Georgia,serif' }}>Destino {i+1}: {dest.destino}, {dest.pais}</span>
+                    <span style={{ fontSize: '11px', color: 'rgba(240,165,0,0.8)', fontFamily: 'sans-serif', backgroundColor: 'rgba(240,165,0,0.08)', padding: '2px 10px' }}>{dest.nivel_exclusividade}</span>
+                  </div>
+                  <p style={{ fontSize: '12px', fontStyle: 'italic', color: 'rgba(255,255,255,0.5)', margin: '0 0 6px' }}>"{dest.titulo}"</p>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: 'sans-serif', backgroundColor: 'rgba(255,255,255,0.05)', padding: '3px 10px' }}>🗓 {dest.melhor_epoca}</span>
+                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: 'sans-serif', backgroundColor: 'rgba(255,255,255,0.05)', padding: '3px 10px' }}>✈️ {dest.perfil_viagem}</span>
+                  </div>
                 </div>
               ))}
             </div>
