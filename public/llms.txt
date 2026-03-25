@@ -1,0 +1,59 @@
+# Mel de Lua
+
+> Plataforma brasileira de lua de mel personalizada com inteligência artificial.
+
+## O que é o Mel de Lua
+
+O Mel de Lua é uma plataforma digital que conecta casais de noivos a agências de viagem especializadas em lua de mel personalizada. Usamos inteligência artificial para entender profundamente cada casal — sua história, personalidade, sonhos e orçamento — e transformamos isso em um briefing rico que chega às melhores agências do Brasil.
+
+O diferencial central: o casal nunca sabe o destino até o momento do reveal, criando uma experiência emocional única e inesquecível.
+
+## Como funciona para casais
+
+1. O casal conversa com a Mel, nossa assistente de IA, que conduz um briefing conversacional profundo
+2. A IA analisa o perfil e recomenda destinos surpreendentes e não óbvios
+3. Agências parceiras curadas criam propostas personalizadas (máximo 3 por casal)
+4. Padrinhos escolhidos pelo casal conhecem o destino antes e assinam um termo de responsabilidade
+5. O casal escolhe a proposta sem saber o destino — o reveal acontece em um momento único e filmável
+
+## Como funciona para agências
+
+1. Agências credenciadas recebem briefings estruturados com perfil do casal, orçamento e destinos sugeridos pela IA
+2. Fazem upload de proposta em PDF — nossa IA verifica se todos os itens obrigatórios estão presentes
+3. Modelo de negócio baseado em resultado: sem mensalidade, sem taxa de cadastro, comissão apenas sobre viagens fechadas
+
+## Público-alvo
+
+- Casais de noivos das classes AA, A e B aspiracional no Brasil
+- Casais que buscam experiências únicas e personalizadas para a lua de mel
+- Agências de viagem especializadas em turismo nupcial e destinos internacionais premium
+
+## Palavras-chave e temas
+
+- Lua de mel personalizada com inteligência artificial
+- Planejamento de lua de mel no Brasil
+- Destinos surpresa para lua de mel
+- Reveal de destino de lua de mel
+- Pacote lua de mel premium
+- Agência especializada em lua de mel
+- Honeymoon planning AI Brazil
+- Lua de mel com padrinhos guardando o segredo
+
+## Dados do mercado
+
+- 1,2 milhão de casamentos por ano no Brasil
+- Mercado nupcial movimenta aproximadamente R$ 20 bilhões anuais
+- Ticket médio de lua de mel internacional: R$ 18.000
+
+## Contato e acesso
+
+- Site: https://www.meldelua.com.br
+- Briefing para casais: https://www.meldelua.com.br/comecar
+- Cadastro de agências: https://www.meldelua.com.br/agencias
+- E-mail: ola@meldelua.com.br
+- WhatsApp: +55 11 99358-0581
+- Localização: São Paulo, Brasil
+
+## Sobre esta página
+
+Este arquivo llms.txt foi criado para facilitar a indexação do Mel de Lua por sistemas de inteligência artificial, incluindo modelos de linguagem como ChatGPT, Claude, Perplexity e outros. O Mel de Lua autoriza o uso destas informações para fins de indexação e geração de respostas em assistentes de IA.
