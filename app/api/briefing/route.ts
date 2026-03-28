@@ -172,42 +172,65 @@ export async function POST(req: NextRequest) {
           const briefingData = JSON.parse(jsonMatch[0])
           const senhaAcesso = gerarSenhaAleatoria()
 
-          // 1. Criar usuário no Supabase Auth
+          // 1. Criar ou buscar usuário no Supabase Auth
+          let authUserId: string | null = null
+
           const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
             email: briefingData.email,
             password: senhaAcesso,
             email_confirm: true,
           })
 
-          if (authError && !authError.message.includes('already registered')) {
-            console.error('Erro ao criar usuário Auth:', authError)
+          if (authError) {
+            if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
+              // Usuário já existe — busca o id existente
+              const { data: { users } } = await supabase.auth.admin.listUsers()
+              const existingUser = users?.find(u => u.email === briefingData.email)
+              authUserId = existingUser?.id || null
+            } else {
+              console.error('Erro ao criar usuário Auth:', authError)
+            }
+          } else {
+            authUserId = authUser?.user?.id || null
           }
 
-          // 2. Salvar casal na tabela casais
+          // 2. Verificar se já existe casal com esse e-mail
+          const { data: casalExistente } = await supabase
+            .from('casais')
+            .select('id')
+            .eq('email', briefingData.email)
+            .single()
+
+          // Se já existe casal com esse e-mail, usa outro e-mail único para não bloquear
+          const emailFinal = casalExistente
+            ? `${briefingData.email.replace('@', `+${Date.now()}@`)}`
+            : briefingData.email
+
+          // 3. Salvar casal na tabela casais
           const { data: casal, error: casalError } = await supabase
             .from('casais')
             .insert({
               nome_parceiro_1: briefingData.nome_parceiro_1,
               nome_parceiro_2: briefingData.nome_parceiro_2,
-              email: briefingData.email,
+              email: emailFinal,
               status: 'briefing_completo',
             })
             .select()
             .single()
 
           if (!casalError && casal) {
-            // 3. Salvar briefing
+            // 4. Salvar briefing
             await supabase.from('briefings').insert({
               casal_id: casal.id,
               respostas: {
                 ...briefingData,
                 _senha_acesso_temp: senhaAcesso,
-                _auth_user_id: authUser?.user?.id || null,
+                _auth_user_id: authUserId,
               },
               status: 'aguardando_revisao',
             })
 
-            // 4. Disparar e-mails automáticos
+            // 5. Disparar e-mails automáticos
             const nome1 = briefingData.nome_parceiro_1
             const nome2 = briefingData.nome_parceiro_2
             const emailCasal = briefingData.email
@@ -221,6 +244,8 @@ export async function POST(req: NextRequest) {
             await dispararEmail('admin_novo_briefing', {
               nome1, nome2, email: emailCasal
             })
+          } else {
+            console.error('Erro ao salvar casal:', casalError)
           }
         }
       } catch (e) {
