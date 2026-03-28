@@ -183,7 +183,9 @@ function FormularioProposta() {
               {/* Linha 3: Origem e destinos sugeridos */}
               <div style={{ padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ fontSize: '9px', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', fontFamily: 'sans-serif', marginBottom: '3px' }}>Origem</div>
-                <div style={{ fontSize: '14px', color: '#FFFFFF', fontFamily: 'sans-serif' }}>GRU — São Paulo / Guarulhos</div>
+                <div style={{ fontSize: '14px', color: '#FFFFFF', fontFamily: 'sans-serif' }}>
+                  {respostas.aeroporto_partida || (respostas.cidade_partida ? `${respostas.cidade_partida}` : 'GRU — São Paulo / Guarulhos')}
+                </div>
               </div>
               {recIA && (recIA.recomendacao_1 || recIA.recomendacao_2) && (
                 <div style={{ padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>

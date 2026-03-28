@@ -101,6 +101,8 @@ JSON format:
   "restricao_alimentar": "",
   "clima_preferido": "",
   "orcamento": "",
+  "cidade_partida": "",
+  "aeroporto_partida": "",
   "data_casamento": "",
   "data_viagem": "",
   "duracao_dias": 0,
