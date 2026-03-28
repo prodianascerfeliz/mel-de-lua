@@ -46,7 +46,7 @@ function FormularioProposta() {
     if (briefingId) {
       const { data: b } = await supabase.from('briefings').select('resumo_ia, respostas').eq('id', briefingId).single()
       if (b) {
-        try { if (b.resumo_ia) { const rec = JSON.parse(b.resumo_ia); if (rec.resumo_casal) setResumoCasal(rec.resumo_casal) } } catch {}
+        try { if (b.resumo_ia) { const rec = JSON.parse(b.resumo_ia); if (rec.resumo_casal) setResumoCasal(rec.resumo_casal); setRecIA(rec) } } catch {}
         if (b.respostas) setRespostas(b.respostas as Record<string, string>)
       }
     }
