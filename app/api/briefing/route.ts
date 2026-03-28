@@ -77,6 +77,8 @@ BLOCO 4 — A viagem em si:
 Comece sempre pelos nomes. Depois vá para a história do casal. Então para como viajam. Depois comida e estilo. Por último logística (data, orçamento). O e-mail pode ser pedido no início ou no final — onde encaixar melhor na conversa.
 
 ## FINALIZANDO
+REGRA CRÍTICA: Você NUNCA pode encerrar a conversa e gerar o [BRIEFING_COMPLETO] sem ter coletado o E-MAIL do casal. Se chegou ao final e não tem o e-mail, peça antes de encerrar. O e-mail é obrigatório — sem ele o casal não recebe acesso ao painel.
+
 Quando tiver coletado informações suficientes dos 4 blocos (nome, email, orçamento e data são OBRIGATÓRIOS), encerre com entusiasmo genuíno.
 
 Sua mensagem final deve:
@@ -172,6 +174,17 @@ export async function POST(req: NextRequest) {
         const jsonMatch = reply.match(/\{[\s\S]*\}/)
         if (jsonMatch) {
           const briefingData = JSON.parse(jsonMatch[0])
+
+          // Validar campos obrigatórios
+          if (!briefingData.email || !briefingData.email.includes('@')) {
+            console.error('Briefing sem e-mail — não salvando')
+            const cleanReply = reply.replace('[BRIEFING_COMPLETO]', '').replace(/\{[\s\S]*\}/, '').trim()
+            return NextResponse.json({
+              reply: cleanReply + '\n\nOops! Preciso do seu e-mail para finalizar. Qual é o e-mail de vocês?',
+              completed: false
+            })
+          }
+
           const senhaAcesso = gerarSenhaAleatoria()
 
           // 1. Criar ou buscar usuário no Supabase Auth
